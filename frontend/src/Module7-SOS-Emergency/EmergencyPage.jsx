@@ -265,6 +265,22 @@ export default function EmergencyPage() {
           </button>
           <button
             className="btn btn-primary"
+            style={{ backgroundColor: '#0f172a', border: '1px solid #334155', padding: '0.75rem', fontWeight: 700 }}
+            disabled={triggering}
+            onClick={() => handleInstantPanic('SILENT_SOS')}
+          >
+            🤫 Silent / Discreet SOS
+          </button>
+          <button
+            className="btn btn-primary"
+            style={{ backgroundColor: '#be123c', border: 'none', padding: '0.75rem', fontWeight: 700 }}
+            disabled={triggering}
+            onClick={() => handleInstantPanic('HARASSMENT')}
+          >
+            ✋ Incident / Harassment
+          </button>
+          <button
+            className="btn btn-primary"
             style={{ backgroundColor: '#b45309', border: 'none', padding: '0.75rem', fontWeight: 700 }}
             disabled={triggering}
             onClick={() => handleInstantPanic('GAS_LEAK')}
@@ -459,6 +475,10 @@ export default function EmergencyPage() {
                   <option value="MEDICAL">🚑 Medical Emergency</option>
                   <option value="FIRE">🔥 Fire Hazard</option>
                   <option value="SECURITY_THREAT">🛡️ Security Threat / Intruder</option>
+                  <option value="SILENT_SOS">🤫 Silent / Discreet SOS</option>
+                  <option value="HARASSMENT">✋ Harassment / Safety Violation</option>
+                  <option value="THREAT">⚠️ Threat / Extortion</option>
+                  <option value="ASSAULT">🚨 Assault / Physical Harm</option>
                   <option value="GAS_LEAK">⚠️ Gas / Chemical Leak</option>
                   <option value="ELEVATOR_TRAP">🛗 Elevator Trapped</option>
                   <option value="NATURAL_DISASTER">🌪️ Natural Disaster</option>

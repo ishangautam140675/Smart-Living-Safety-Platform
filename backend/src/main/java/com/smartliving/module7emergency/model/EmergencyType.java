@@ -7,5 +7,9 @@ public enum EmergencyType {
     NATURAL_DISASTER,
     GAS_LEAK,
     ELEVATOR_TRAP,
+    SILENT_SOS,
+    HARASSMENT,
+    THREAT,
+    ASSAULT,
     OTHER
 }

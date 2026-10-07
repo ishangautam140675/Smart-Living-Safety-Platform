@@ -27,6 +27,8 @@ public class DataInitializer implements CommandLineRunner {
     private final com.smartliving.module2propertyrooms.rooms.service.RoomService roomService;
     private final com.smartliving.module2propertyrooms.rooms.repository.BedRepository bedRepository;
     private final com.smartliving.module3residents.service.ResidentService residentService;
+    private final com.smartliving.module9food.service.FoodService foodService;
+    private final com.smartliving.module6payments.service.PaymentService paymentService;
 
     public DataInitializer(RoleRepository roleRepository,
                            UserRepository userRepository,
@@ -36,7 +38,9 @@ public class DataInitializer implements CommandLineRunner {
                            com.smartliving.module2propertyrooms.properties.repository.FloorRepository floorRepository,
                            com.smartliving.module2propertyrooms.rooms.service.RoomService roomService,
                            com.smartliving.module2propertyrooms.rooms.repository.BedRepository bedRepository,
-                           com.smartliving.module3residents.service.ResidentService residentService) {
+                           com.smartliving.module3residents.service.ResidentService residentService,
+                           com.smartliving.module9food.service.FoodService foodService,
+                           com.smartliving.module6payments.service.PaymentService paymentService) {
         this.roleRepository = roleRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -46,6 +50,8 @@ public class DataInitializer implements CommandLineRunner {
         this.roomService = roomService;
         this.bedRepository = bedRepository;
         this.residentService = residentService;
+        this.foodService = foodService;
+        this.paymentService = paymentService;
     }
 
     @Override
@@ -155,9 +161,66 @@ public class DataInitializer implements CommandLineRunner {
                 residentReq.setDepositAmount(new java.math.BigDecimal("15000.00"));
                 residentReq.setPermanentAddress("12, Green Park, New Delhi");
                 residentReq.setNotes("First enrolled resident in Block A");
-                residentService.onboardResident(residentReq);
+                var onboarded = residentService.onboardResident(residentReq);
                 log.info("Initialized default resident account: rahul.resident@smartliving.local (Allocated bed: {})", availableBeds.get(0).getBedNumber());
+
+                // Seed monthly rent invoice for Rahul
+                com.smartliving.module6payments.dto.CreateInvoiceRequest invReq = new com.smartliving.module6payments.dto.CreateInvoiceRequest();
+                invReq.setResidentId(onboarded.getId());
+                invReq.setTitle("October 2026 Monthly Accommodation & PG Rent");
+                invReq.setDescription("Includes Double-AC room rent, high-speed Wi-Fi, laundry, and daily mess catering.");
+                invReq.setAmount(new java.math.BigDecimal("7500.00"));
+                invReq.setDueDate(java.time.LocalDate.now().plusDays(5));
+                invReq.setBillingMonth("2026-10");
+                paymentService.createInvoice(invReq);
+                log.info("Initialized default rent invoice of ₹7500 for Rahul Sharma");
             }
+        }
+
+        // Seed daily mess menu for today if none exists
+        java.time.LocalDate today = java.time.LocalDate.now();
+        if (foodService.getDailyMenu(today, null).isEmpty()) {
+            com.smartliving.module9food.dto.CreateMealMenuRequest breakfast = new com.smartliving.module9food.dto.CreateMealMenuRequest();
+            breakfast.setMenuDate(today);
+            breakfast.setMealType(com.smartliving.module9food.model.MealType.BREAKFAST);
+            breakfast.setTitle("North & South Indian Breakfast Buffet");
+            breakfast.setItems("Idli Sambhar, Masala Poha, Boiled Eggs / Sprouts, Fresh Cut Fruits, Tea & Coffee");
+            breakfast.setVeg(false);
+            breakfast.setDietaryNotes("Gluten-free options available on request");
+            breakfast.setCalories("420 kcal");
+            foodService.createOrUpdateMenu(breakfast);
+
+            com.smartliving.module9food.dto.CreateMealMenuRequest lunch = new com.smartliving.module9food.dto.CreateMealMenuRequest();
+            lunch.setMenuDate(today);
+            lunch.setMealType(com.smartliving.module9food.model.MealType.LUNCH);
+            lunch.setTitle("Wholesome Executive Lunch");
+            lunch.setItems("Paneer Butter Masala, Dal Tadka, Jeera Rice, Phulka, Boondi Raita, Gulab Jamun");
+            lunch.setVeg(true);
+            lunch.setDietaryNotes("Rich in protein, prepared with pure cow ghee");
+            lunch.setCalories("680 kcal");
+            foodService.createOrUpdateMenu(lunch);
+
+            com.smartliving.module9food.dto.CreateMealMenuRequest snacks = new com.smartliving.module9food.dto.CreateMealMenuRequest();
+            snacks.setMenuDate(today);
+            snacks.setMealType(com.smartliving.module9food.model.MealType.SNACKS);
+            snacks.setTitle("Evening Hi-Tea & Snacks");
+            snacks.setItems("Veg Samosa with Mint Chutney, Assorted Biscuits, Masala Chai & Filter Coffee");
+            snacks.setVeg(true);
+            snacks.setDietaryNotes("Freshly prepared at 4:30 PM");
+            snacks.setCalories("280 kcal");
+            foodService.createOrUpdateMenu(snacks);
+
+            com.smartliving.module9food.dto.CreateMealMenuRequest dinner = new com.smartliving.module9food.dto.CreateMealMenuRequest();
+            dinner.setMenuDate(today);
+            dinner.setMealType(com.smartliving.module9food.model.MealType.DINNER);
+            dinner.setTitle("Special Co-Living Community Dinner");
+            dinner.setItems("Kadai Chicken / Shahi Paneer, Dal Makhani, Steamed Rice, Tandoori Roti, Green Salad");
+            dinner.setVeg(false);
+            dinner.setDietaryNotes("Separate vegetarian preparation and serving counter");
+            dinner.setCalories("620 kcal");
+            foodService.createOrUpdateMenu(dinner);
+
+            log.info("Initialized 4-tier daily mess menu (Breakfast, Lunch, Snacks, Dinner) for {}", today);
         }
     }
 }

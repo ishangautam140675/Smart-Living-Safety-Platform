@@ -40,6 +40,13 @@ public class FoodController {
         return ResponseEntity.ok(menu);
     }
 
+    @GetMapping("/menu/today")
+    public ResponseEntity<List<MealMenuResponse>> getTodayMenu(Authentication authentication) {
+        String email = authentication != null ? authentication.getName() : null;
+        List<MealMenuResponse> menu = foodService.getDailyMenu(LocalDate.now(), email);
+        return ResponseEntity.ok(menu);
+    }
+
     @GetMapping("/menu/weekly")
     public ResponseEntity<List<MealMenuResponse>> getWeeklyMenu(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
