@@ -81,6 +81,14 @@ export default function StaffRosterPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Periodic background refresh every 20 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData();
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [loadData]);
+
   if (!user) {
     return (
       <div className="container" style={{ padding: '3rem 1rem', textAlign: 'center' }}>
@@ -173,9 +181,19 @@ export default function StaffRosterPage() {
             Manage shifts, clock-in/out, patrol checkpoints, and guard duty logs
           </p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowScheduleForm(s => !s)}>
-          {showScheduleForm ? '✕ Cancel' : '+ Schedule Shift'}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button
+            className="btn btn-outline"
+            onClick={() => loadData()}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            title="Refresh shifts and patrol checkpoints"
+          >
+            🔄 Refresh
+          </button>
+          <button className="btn btn-primary" onClick={() => setShowScheduleForm(s => !s)}>
+            {showScheduleForm ? '✕ Cancel' : '+ Schedule Shift'}
+          </button>
+        </div>
       </div>
 
       {/* Alerts */}

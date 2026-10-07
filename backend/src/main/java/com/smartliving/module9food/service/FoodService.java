@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.smartliving.module3residents.service.ResidentService;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -32,15 +33,18 @@ public class FoodService {
     private final MealOptOutRepository optOutRepository;
     private final MealFeedbackRepository feedbackRepository;
     private final ResidentRepository residentRepository;
+    private final ResidentService residentService;
 
     public FoodService(MealMenuRepository menuRepository,
                        MealOptOutRepository optOutRepository,
                        MealFeedbackRepository feedbackRepository,
-                       ResidentRepository residentRepository) {
+                       ResidentRepository residentRepository,
+                       ResidentService residentService) {
         this.menuRepository = menuRepository;
         this.optOutRepository = optOutRepository;
         this.feedbackRepository = feedbackRepository;
         this.residentRepository = residentRepository;
+        this.residentService = residentService;
     }
 
     public MealMenuResponse createOrUpdateMenu(CreateMealMenuRequest request) {
@@ -96,8 +100,7 @@ public class FoodService {
     }
 
     public MealFeedbackResponse recordFeedback(MealFeedbackRequest request, String residentEmail) {
-        Resident resident = residentRepository.findByUserEmail(residentEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Resident profile not found for email: " + residentEmail));
+        Resident resident = residentService.getOrCreateResidentForUser(residentEmail);
 
         MealMenu menu = menuRepository.findById(request.getMenuId())
                 .orElseThrow(() -> new ResourceNotFoundException("Meal menu not found with id: " + request.getMenuId()));
@@ -118,8 +121,7 @@ public class FoodService {
     }
 
     public MealOptOutResponse optOutMeal(MealOptOutRequest request, String residentEmail) {
-        Resident resident = residentRepository.findByUserEmail(residentEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Resident profile not found for email: " + residentEmail));
+        Resident resident = residentService.getOrCreateResidentForUser(residentEmail);
 
         Optional<MealOptOut> existing = optOutRepository.findByResidentIdAndOptOutDateAndMealType(
                 resident.getId(), request.getOptOutDate(), request.getMealType());
@@ -224,7 +226,11 @@ public class FoodService {
 
     private Resident resolveResident(String email) {
         if (email == null) return null;
-        return residentRepository.findByUserEmail(email).orElse(null);
+        try {
+            return residentService.getOrCreateResidentForUser(email);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private MealMenuResponse toMenuResponse(MealMenu menu, Resident resident) {

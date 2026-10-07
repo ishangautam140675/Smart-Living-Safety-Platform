@@ -21,6 +21,8 @@ import com.smartliving.module1authentication.users.model.RoleType;
 import com.smartliving.module1authentication.users.model.User;
 import com.smartliving.module1authentication.users.repository.RoleRepository;
 import com.smartliving.module1authentication.users.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +35,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class ResidentService {
+
+    private static final Logger log = LoggerFactory.getLogger(ResidentService.class);
 
     private final ResidentRepository residentRepository;
     private final UserRepository userRepository;
@@ -141,16 +145,43 @@ public class ResidentService {
         return ResidentResponse.fromEntity(resident);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
+    public Resident getOrCreateResidentForUser(String email) {
+        String cleanEmail = email.trim().toLowerCase();
+        return residentRepository.findByUserEmail(cleanEmail)
+                .orElseGet(() -> {
+                    com.smartliving.module1authentication.users.model.User user = userRepository.findByEmail(cleanEmail)
+                            .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + cleanEmail));
+
+                    String admissionNumber = "ADM-" + System.currentTimeMillis() % 1000000;
+                    Resident resident = new Resident(
+                            user,
+                            null,
+                            admissionNumber,
+                            com.smartliving.module3residents.model.IdProofType.AADHAAR,
+                            "NOT_PROVIDED",
+                            "Not Provided",
+                            "Self",
+                            user.getPhone() != null ? user.getPhone() : "0000000000",
+                            LocalDate.now(),
+                            java.math.BigDecimal.ZERO,
+                            java.math.BigDecimal.ZERO,
+                            "Hostel Premises",
+                            "Auto-created resident profile"
+                    );
+                    log.info("Auto-created missing resident profile for user [{}] with admission number [{}]", cleanEmail, admissionNumber);
+                    return residentRepository.save(resident);
+                });
+    }
+
+    @Transactional
     public ResidentResponse getResidentByEmail(String email) {
-        Resident resident = residentRepository.findByUserEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Resident profile", "email", email));
+        Resident resident = getOrCreateResidentForUser(email);
         return ResidentResponse.fromEntity(resident);
     }
 
     public ResidentResponse updateProfileByEmail(String email, ResidentProfileUpdateRequest request) {
-        Resident resident = residentRepository.findByUserEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Resident profile", "email", email));
+        Resident resident = getOrCreateResidentForUser(email);
 
         if (resident.getUser() != null) {
             if (request.getFullName() != null && !request.getFullName().isBlank()) {

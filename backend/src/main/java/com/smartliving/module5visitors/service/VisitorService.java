@@ -27,18 +27,25 @@ public class VisitorService {
 
     private final VisitorPassRepository visitorPassRepository;
     private final ResidentRepository residentRepository;
+    private final com.smartliving.module3residents.service.ResidentService residentService;
 
     public VisitorService(VisitorPassRepository visitorPassRepository,
-                          ResidentRepository residentRepository) {
+                          ResidentRepository residentRepository,
+                          com.smartliving.module3residents.service.ResidentService residentService) {
         this.visitorPassRepository = visitorPassRepository;
         this.residentRepository = residentRepository;
+        this.residentService = residentService;
     }
 
     public VisitorPassResponse createPass(VisitorPassRequest request, String currentUserEmail) {
         Resident resident;
 
         if (currentUserEmail != null) {
-            resident = residentRepository.findByUserEmail(currentUserEmail).orElse(null);
+            try {
+                resident = residentService.getOrCreateResidentForUser(currentUserEmail);
+            } catch (Exception e) {
+                resident = null;
+            }
         } else {
             resident = null;
         }
@@ -76,10 +83,9 @@ public class VisitorService {
         return toResponse(saved);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<VisitorPassResponse> getMyPasses(String residentEmail) {
-        Resident resident = residentRepository.findByUserEmail(residentEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Resident profile not found for email: " + residentEmail));
+        Resident resident = residentService.getOrCreateResidentForUser(residentEmail);
         return visitorPassRepository.findByResidentIdOrderByCreatedAtDesc(resident.getId())
                 .stream()
                 .map(this::toResponse)

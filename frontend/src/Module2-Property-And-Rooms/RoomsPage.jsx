@@ -104,8 +104,16 @@ export default function RoomsPage() {
     loadData();
   }, [statusFilter, typeFilter]);
 
-  const loadData = async () => {
-    setLoading(true);
+  // Real-time polling so room/bed allocations sync across admin and resident
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [statusFilter, typeFilter]);
+
+  const loadData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError('');
     try {
       const [sumData, propData, roomData] = await Promise.all([
@@ -346,6 +354,14 @@ export default function RoomsPage() {
         {isAdmin && (
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <button
+              onClick={() => loadData(true)}
+              className="btn btn-outline"
+              style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              title="Refresh properties, rooms and bed occupancies"
+            >
+              <span>🔄 Refresh</span>
+            </button>
+            <button
               onClick={() => handleOpenDatasetPicker(null)}
               className="btn btn-outline"
               style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid #3b82f6', color: '#2563eb' }}
@@ -356,6 +372,15 @@ export default function RoomsPage() {
               {showAddRoom ? '✕ Close Form' : '＋ Add New Room'}
             </button>
           </div>
+        )}
+        {!isAdmin && (
+          <button
+            onClick={() => loadData(true)}
+            className="btn btn-outline"
+            style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            🔄 Refresh
+          </button>
         )}
       </div>
 

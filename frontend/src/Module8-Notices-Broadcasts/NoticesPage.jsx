@@ -51,6 +51,14 @@ export default function NoticesPage() {
     loadNotices();
   }, [loadNotices]);
 
+  // Periodic background refresh every 20 seconds for community notices
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadNotices();
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [loadNotices]);
+
   // Handle Publish Notice
   const handlePublish = async (e) => {
     e.preventDefault();
@@ -166,15 +174,25 @@ export default function NoticesPage() {
           </p>
         </div>
 
-        {isAdminOrStaff && (
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button
-            className="btn btn-primary"
-            onClick={() => setShowModal(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            className="btn btn-outline"
+            onClick={() => loadNotices()}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            title="Refresh notice board"
           >
-            <span>➕</span> Post Notice
+            🔄 Refresh
           </button>
-        )}
+          {isAdminOrStaff && (
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <span>➕</span> Post Notice
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Alerts */}

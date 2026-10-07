@@ -42,15 +42,18 @@ public class ComplaintService {
     private final ResidentRepository residentRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
+    private final com.smartliving.module3residents.service.ResidentService residentService;
 
     public ComplaintService(ComplaintRepository complaintRepository,
                             ResidentRepository residentRepository,
                             RoomRepository roomRepository,
-                            UserRepository userRepository) {
+                            UserRepository userRepository,
+                            com.smartliving.module3residents.service.ResidentService residentService) {
         this.complaintRepository = complaintRepository;
         this.residentRepository = residentRepository;
         this.roomRepository = roomRepository;
         this.userRepository = userRepository;
+        this.residentService = residentService;
     }
 
     // ─── Submit a new complaint ───────────────────────────────────────────────
@@ -63,9 +66,7 @@ public class ComplaintService {
      * @return the saved complaint as a response DTO
      */
     public ComplaintResponse submitComplaint(ComplaintRequest request, String residentEmail) {
-        var resident = residentRepository.findByUserEmail(residentEmail)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Resident profile not found for email: " + residentEmail));
+        var resident = residentService.getOrCreateResidentForUser(residentEmail);
 
         com.smartliving.module2propertyrooms.rooms.model.Room room = null;
         if (request.getRoomId() != null) {
@@ -94,11 +95,9 @@ public class ComplaintService {
     /**
      * Returns all complaints filed by the given resident, newest first.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ComplaintResponse> getMyComplaints(String residentEmail) {
-        var resident = residentRepository.findByUserEmail(residentEmail)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Resident profile not found for email: " + residentEmail));
+        var resident = residentService.getOrCreateResidentForUser(residentEmail);
 
         return complaintRepository
                 .findByResidentIdOrderByCreatedAtDesc(resident.getId())

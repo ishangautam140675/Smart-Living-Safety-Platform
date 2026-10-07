@@ -30,13 +30,16 @@ public class PaymentService {
     private final InvoiceRepository invoiceRepository;
     private final PaymentTransactionRepository transactionRepository;
     private final ResidentRepository residentRepository;
+    private final com.smartliving.module3residents.service.ResidentService residentService;
 
     public PaymentService(InvoiceRepository invoiceRepository,
                           PaymentTransactionRepository transactionRepository,
-                          ResidentRepository residentRepository) {
+                          ResidentRepository residentRepository,
+                          com.smartliving.module3residents.service.ResidentService residentService) {
         this.invoiceRepository = invoiceRepository;
         this.transactionRepository = transactionRepository;
         this.residentRepository = residentRepository;
+        this.residentService = residentService;
     }
 
     public InvoiceResponse createInvoice(CreateInvoiceRequest request) {
@@ -63,10 +66,9 @@ public class PaymentService {
         return toResponse(saved);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<InvoiceResponse> getMyInvoices(String residentEmail) {
-        Resident resident = residentRepository.findByUserEmail(residentEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Resident profile not found for email: " + residentEmail));
+        Resident resident = residentService.getOrCreateResidentForUser(residentEmail);
         return invoiceRepository.findByResidentIdOrderByDueDateDesc(resident.getId())
                 .stream()
                 .map(this::toResponse)
