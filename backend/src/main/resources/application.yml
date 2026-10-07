@@ -1,0 +1,26 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: smart-living-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:h2}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+app:
+  cors:
+    allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+  jwt:
+    secret: ${JWT_SECRET:smart_living_secret_key_placeholder_change_in_production_min_256_bits}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
