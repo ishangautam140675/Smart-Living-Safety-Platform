@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 
 // ─── Module 1: Authentication ─────────────────────────────────────────────────
@@ -42,14 +42,14 @@ import AnalyticsReportsPage from './Module12-Analytics-Reports/AnalyticsReportsP
 // ─── Shared / Public ──────────────────────────────────────────────────────────
 import LandingPage from './pages/LandingPage';
 
-// Navigation Groups modeled after enterprise platforms (Slack, Stripe, Jira, Linear)
+// Navigation Groups containing all 12 platform modules
 const NAV_GROUPS = [
   {
     category: 'OVERVIEW',
     items: [
       { path: '/', label: 'Home & Welcome', icon: '🏠' },
       { path: '/dashboard', label: 'My Dashboard', icon: '📊' },
-      { path: '/analytics', label: 'Executive Intelligence', icon: '📈' },
+      { path: '/analytics', label: 'Executive Intelligence & PDF', icon: '📈' },
     ]
   },
   {
@@ -57,14 +57,14 @@ const NAV_GROUPS = [
     items: [
       { path: '/rooms', label: 'Properties & Rooms', icon: '🏢' },
       { path: '/residents', label: 'Resident Directory', icon: '👥' },
-      { path: '/payments', label: 'Billing & Payments', icon: '💳' },
+      { path: '/payments', label: 'Billing & GST Invoices', icon: '💳' },
       { path: '/food', label: 'Food & Mess Dining', icon: '🍲' },
     ]
   },
   {
     category: 'SERVICES & OPERATIONS',
     items: [
-      { path: '/complaints', label: 'Helpdesk & Complaints', icon: '🛠️' },
+      { path: '/complaints', label: 'Helpdesk & Maintenance', icon: '🛠️' },
       { path: '/notices', label: 'Community Notices', icon: '📢' },
       { path: '/visitors', label: 'Gate & Visitor Passes', icon: '🎫' },
       { path: '/inventory', label: 'Equipment & Assets', icon: '📦' },
@@ -84,75 +84,83 @@ function getPageMeta(pathname) {
   return { category: 'WORKSPACE', title: 'Smart Living & Safety', icon: '⚡' };
 }
 
-function Sidebar() {
+function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
   const { user } = useAuth();
 
   return (
-    <aside className="app-sidebar">
-      {/* Brand & Workspace ID */}
-      <div className="sidebar-header">
-        <Link to="/" className="sidebar-brand">
-          <div className="sidebar-logo-icon">🏠</div>
-          <div>
-            <div style={{ lineHeight: 1.1, fontSize: '0.98rem' }}>SmartLiving</div>
-            <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 500 }}>Shared Living OS</div>
-          </div>
-        </Link>
-        <span className="sidebar-badge">v2.4</span>
-      </div>
+    <>
+      {/* Backdrop overlay for drawer menu */}
+      {isOpen && <div className="sidebar-backdrop" onClick={onClose} />}
 
-      {/* Nav Tree */}
-      <div className="sidebar-content">
-        {NAV_GROUPS.map((group) => (
-          <div key={group.category}>
-            <div className="nav-group-title">{group.category}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              {group.items.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
-                  >
-                    <span className="sidebar-nav-icon">{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
+      <aside className={`app-sidebar ${isOpen ? 'open' : ''}`}>
+        {/* Brand Header */}
+        <div className="sidebar-header">
+          <Link to="/" className="sidebar-brand" onClick={onClose}>
+            <div className="sidebar-logo-icon">🏠</div>
+            <div>
+              <div style={{ lineHeight: 1.1, fontSize: '0.98rem' }}>SmartLiving</div>
+              <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 500 }}>Shared Living OS</div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Footer Profile Strip */}
-      <div className="sidebar-footer">
-        {user ? (
-          <div className="user-quick-profile">
-            <div className="user-avatar-circle">
-              {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
-            </div>
-            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                {user.fullName}
-              </div>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
-                {user.roles && user.roles.length > 0 ? user.roles[0].replace('ROLE_', '') : 'Resident'}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <Link to="/login" className="btn btn-primary" style={{ width: '100%', fontSize: '0.82rem', padding: '0.45rem' }}>
-            Sign In
           </Link>
-        )}
-      </div>
-    </aside>
+          <button className="sidebar-close-btn" onClick={onClose} title="Close Menu">
+            ✕
+          </button>
+        </div>
+
+        {/* Feature Modules Menu List */}
+        <div className="sidebar-content">
+          {NAV_GROUPS.map((group) => (
+            <div key={group.category}>
+              <div className="nav-group-title">{group.category}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                {group.items.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+                      onClick={onClose}
+                    >
+                      <span className="sidebar-nav-icon">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer Profile Strip */}
+        <div className="sidebar-footer">
+          {user ? (
+            <div className="user-quick-profile">
+              <div className="user-avatar-circle">
+                {user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+              </div>
+              <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                  {user.fullName}
+                </div>
+                <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                  {user.roles && user.roles.length > 0 ? user.roles[0].replace('ROLE_', '') : 'Resident'}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Link to="/login" className="btn btn-primary" onClick={onClose} style={{ width: '100%', fontSize: '0.82rem', padding: '0.45rem' }}>
+              Sign In
+            </Link>
+          )}
+        </div>
+      </aside>
+    </>
   );
 }
 
-function TopBar() {
+function TopBar({ onToggleSidebar, isDark, onToggleTheme }) {
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const pageMeta = getPageMeta(location.pathname);
@@ -160,6 +168,18 @@ function TopBar() {
   return (
     <header className="app-topbar">
       <div className="topbar-left">
+        {/* Triple-Line (Hamburger) Menu Button */}
+        <button
+          className="hamburger-btn"
+          onClick={onToggleSidebar}
+          title="Open Features & Modules Menu"
+          aria-label="Toggle Features Menu"
+        >
+          <span className="hamburger-line" />
+          <span className="hamburger-line" />
+          <span className="hamburger-line" />
+        </button>
+
         <div className="topbar-page-info">
           <span className="topbar-breadcrumb">{pageMeta.category}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -170,6 +190,16 @@ function TopBar() {
       </div>
 
       <div className="topbar-right">
+        {/* Dark / Light Theme Toggle (Sun ☀️ & Moon 🌙) */}
+        <button
+          className="theme-toggle-btn"
+          onClick={onToggleTheme}
+          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          aria-label="Toggle Theme"
+        >
+          {isDark ? '☀️' : '🌙'}
+        </button>
+
         {/* Real-time System Pulse */}
         <div className="system-status-indicator">
           <span className="status-dot-pulse" />
@@ -185,7 +215,7 @@ function TopBar() {
         {/* User Account Controls */}
         {isAuthenticated && user ? (
           <div className="topbar-user">
-            <div style={{ textAlign: 'right', display: 'none', md: 'block' }}>
+            <div style={{ textAlign: 'right' }}>
               <div className="topbar-user-name">{user.fullName}</div>
               <div className="topbar-user-role">
                 {user.roles && user.roles.length > 0 ? user.roles[0].replace('ROLE_', '') : 'MEMBER'}
@@ -211,13 +241,38 @@ function TopBar() {
 }
 
 export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    return localStorage.getItem('smart_theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      localStorage.setItem('smart_theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('smart_theme', 'light');
+    }
+  }, [isDark]);
+
+  const toggleTheme = () => {
+    setIsDark(prev => !prev);
+  };
+
   return (
     <AuthProvider>
       <div className="app-shell">
-        <Sidebar />
+        {/* Slide-out Drawer Sidebar containing all features & modules */}
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <div className="main-wrapper">
-          <TopBar />
+          {/* Top Bar with Triple-Line button and Sun/Moon theme switcher */}
+          <TopBar
+            onToggleSidebar={() => setSidebarOpen(prev => !prev)}
+            isDark={isDark}
+            onToggleTheme={toggleTheme}
+          />
 
           <main className="page-container">
             <Routes>
@@ -244,7 +299,7 @@ export default function App() {
             </div>
             <div style={{ display: 'flex', gap: '1.5rem' }}>
               <span>Security: RBAC Enforced</span>
-              <span>Backend: Connected (Port 8080)</span>
+              <span>Theme: {isDark ? 'Dark Mode (Active)' : 'Light Mode (Active)'}</span>
             </div>
           </footer>
         </div>
