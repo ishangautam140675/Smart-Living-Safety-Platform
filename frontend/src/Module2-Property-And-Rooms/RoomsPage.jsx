@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../Module1-Authentication/AuthContext';
 import { roomService } from './roomService';
 import { propertyService } from './propertyService';
-import { generateRoomImages, clearRoomImageCache, isGeminiConfigured } from '../utils/roomImageGenerator';
+import { generateRoomImages, clearRoomImageCache, isGeminiConfigured, getGeminiApiKey } from '../utils/roomImageGenerator';
 
 
 // ─── Room photo gallery data (curated Unsplash images per room type) ──────────
@@ -98,15 +98,31 @@ export default function RoomsPage() {
   // 0..4 — how many views completed
   const [genProgress, setGenProgress] = useState(0);
   const [genError, setGenError] = useState('');
-  const geminiReady = isGeminiConfigured();
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [apiKeyInput, setApiKeyInput] = useState(() => getGeminiApiKey());
+  const [geminiReady, setGeminiReady] = useState(() => isGeminiConfigured());
+
+  const handleSaveApiKey = (e) => {
+    e.preventDefault();
+    if (apiKeyInput && apiKeyInput.trim()) {
+      localStorage.setItem('slp_gemini_api_key', apiKeyInput.trim());
+      setGeminiReady(true);
+      setShowKeyModal(false);
+      setSuccessMsg('✅ Gemini API key saved! AI photo generation is now active.');
+    } else {
+      localStorage.removeItem('slp_gemini_api_key');
+      setGeminiReady(false);
+      setShowKeyModal(false);
+    }
+  };
 
   /** Build a stable cache key for a room */
   const roomCacheKey = (room) => `${room.roomNumber}_${room.roomType}_${room.baseRent}`;
 
   /** Trigger AI image generation for a single room */
   const handleGenerateImages = useCallback(async (room) => {
-    if (!geminiReady) {
-      setGenError('⚠️ Gemini API key not set. Add VITE_GEMINI_API_KEY to frontend/.env and restart the dev server.');
+    if (!isGeminiConfigured()) {
+      setShowKeyModal(true);
       return;
     }
     const key = roomCacheKey(room);
@@ -121,7 +137,7 @@ export default function RoomsPage() {
       setGenError(`AI generation failed: ${err.message}`);
       setGeneratingForRoom(null);
     }
-  }, [geminiReady]);
+  }, []);
 
   /** Clear cached AI images and regenerate */
   const handleRegenerateImages = useCallback(async (room) => {
@@ -133,6 +149,7 @@ export default function RoomsPage() {
     });
     await handleGenerateImages(room);
   }, [handleGenerateImages]);
+
 
   useEffect(() => {
     loadData();
@@ -288,11 +305,21 @@ export default function RoomsPage() {
           </p>
         </div>
         {isAdmin && (
-          <button onClick={() => setShowAddRoom(!showAddRoom)} className="btn btn-primary" style={{ fontWeight: 600 }}>
-            {showAddRoom ? '✕ Close Form' : '＋ Add New Room'}
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button
+              onClick={() => setShowKeyModal(true)}
+              className="btn btn-outline"
+              style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', border: geminiReady ? '1px solid #10b981' : '1px solid #f59e0b', color: geminiReady ? '#059669' : '#d97706' }}
+            >
+              <span>{geminiReady ? '✨ Gemini AI: Active' : '🔑 Configure AI Key'}</span>
+            </button>
+            <button onClick={() => setShowAddRoom(!showAddRoom)} className="btn btn-primary" style={{ fontWeight: 600 }}>
+              {showAddRoom ? '✕ Close Form' : '＋ Add New Room'}
+            </button>
+          </div>
         )}
       </div>
+
 
       {/* ── Messages ──────────────────────────────────────────────────── */}
       {error && (
@@ -780,6 +807,54 @@ export default function RoomsPage() {
           </div>
         </div>
       )}
+
+      {/* ── Gemini API Key Configuration Modal ──────────────────────────── */}
+      {showKeyModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.8)', zIndex: 1200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }} onClick={() => setShowKeyModal(false)}>
+          <div className="card" style={{ width: '100%', maxWidth: '500px', padding: '2rem', borderRadius: '16px', boxShadow: '0 25px 60px rgba(0,0,0,0.4)', background: 'var(--bg-surface)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '1.75rem' }}>🤖</span>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>Gemini AI Configuration</h3>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Powering real-time unique 4-angle bedroom image generation</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveApiKey} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-main)' }}>
+                  Google Gemini API Key
+                </label>
+                <input
+                  type="password"
+                  value={apiKeyInput}
+                  onChange={(e) => setApiKeyInput(e.target.value)}
+                  placeholder="AIzaSy..."
+                  className="form-control"
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', fontFamily: 'monospace', fontSize: '0.9rem' }}
+                />
+                <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
+                  Keys are stored securely in browser memory/localStorage or can be placed in <code>frontend/.env</code>.
+                </span>
+              </div>
+
+              <div style={{ background: 'var(--bg-main)', border: '1px solid var(--border)', borderRadius: '10px', padding: '0.85rem', fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
+                💡 <strong>How it works:</strong> When you create or regenerate a room, Gemini AI creates 4 distinct angles (Full Bedroom, Attached Washroom, TV Wall, and Wardrobe view) using randomized architecture styles.
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+                <button type="button" onClick={() => setShowKeyModal(false)} className="btn btn-outline" style={{ padding: '0.55rem 1rem' }}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary" style={{ padding: '0.55rem 1.25rem' }}>
+                  Save &amp; Activate
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

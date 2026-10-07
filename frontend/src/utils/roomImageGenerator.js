@@ -15,13 +15,25 @@
 
 import { GoogleGenAI } from '@google/genai';
 
-// ── Read API key from Vite env ─────────────────────────────────────────────
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+// ── Read API key from Vite env or browser localStorage ─────────────────────
+export function getGeminiApiKey() {
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+  if (envKey && envKey.trim() !== '') return envKey.trim();
+  try {
+    const localKey = localStorage.getItem('slp_gemini_api_key') || '';
+    if (localKey && localKey.trim() !== '') return localKey.trim();
+  } catch {
+    // ignore
+  }
+  return '';
+}
 
 /** Returns true if an API key is configured */
 export function isGeminiConfigured() {
-  return Boolean(API_KEY && API_KEY.trim() !== '');
+  const key = getGeminiApiKey();
+  return Boolean(key && key.length > 0);
 }
+
 
 // ── Cache helpers ──────────────────────────────────────────────────────────
 const CACHE_PREFIX = 'slp_room_imgs_';
@@ -103,7 +115,8 @@ export async function generateRoomImages(room, onProgress) {
   const cached = loadFromCache(cacheKey);
   if (cached) return cached;
 
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  const apiKey = getGeminiApiKey();
+  const ai = new GoogleGenAI({ apiKey });
 
   const views = [
     { viewType: 'hero', label: '🛏️ Bedroom View' },
