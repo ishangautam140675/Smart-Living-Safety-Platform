@@ -409,9 +409,26 @@ export default function RoomsPage() {
 
           <form onSubmit={handleCreateRoom} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>Floor ID</label>
-              <input type="number" value={selectedFloorId} onChange={(e) => setSelectedFloorId(e.target.value)} placeholder="Floor ID" required className="form-control" />
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>Select Building &amp; Floor</label>
+              <select
+                value={selectedFloorId}
+                onChange={(e) => setSelectedFloorId(e.target.value)}
+                required
+                className="form-control"
+              >
+                <option value="">-- Choose Floor --</option>
+                {properties.map((prop) =>
+                  prop.buildings?.map((bldg) =>
+                    bldg.floors?.map((fl) => (
+                      <option key={fl.id} value={fl.id}>
+                        {prop.name} &bull; {bldg.name} &bull; Floor {fl.floorNumber} (ID: {fl.id})
+                      </option>
+                    ))
+                  )
+                )}
+              </select>
             </div>
+
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>Room Number</label>
               <input type="text" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} placeholder="e.g. 202, 301-B" required className="form-control" />
