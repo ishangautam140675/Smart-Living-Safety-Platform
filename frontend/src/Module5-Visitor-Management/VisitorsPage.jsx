@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../Module1-Authentication/AuthContext';
 import { visitorService } from './visitorService';
+import { syncHub } from '../utils/syncHub';
 
 export default function VisitorsPage() {
   const { user, isAuthenticated } = useAuth();
@@ -76,11 +77,21 @@ export default function VisitorsPage() {
     loadData();
   }, [loadData]);
 
-  // Auto-refresh passes every 20 seconds
+  // Instant cross-tab sync listener
+  useEffect(() => {
+    const unsubscribe = syncHub.subscribe((evt) => {
+      if (evt.module === 'VISITORS') {
+        loadData();
+      }
+    });
+    return unsubscribe;
+  }, [loadData]);
+
+  // Auto-refresh fallback every 10 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       loadData();
-    }, 20000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [loadData]);
 
@@ -126,6 +137,7 @@ export default function VisitorsPage() {
         hostNotes: ''
       });
       loadData();
+      syncHub.emit('VISITORS', 'CREATED', { passCode: created.passCode });
     } catch (err) {
       setError(err.message || 'Failed to generate pass');
     } finally {
@@ -144,6 +156,7 @@ export default function VisitorsPage() {
       if (scannedPass && scannedPass.passCode === passCode) {
         setScannedPass(updated);
       }
+      syncHub.emit('VISITORS', 'CHECKED_IN', { passCode });
       loadData();
     } catch (err) {
       setError(err.message || 'Check-in failed');
@@ -161,6 +174,7 @@ export default function VisitorsPage() {
       if (scannedPass && scannedPass.passCode === passCode) {
         setScannedPass(updated);
       }
+      syncHub.emit('VISITORS', 'CHECKED_OUT', { passCode });
       loadData();
     } catch (err) {
       setError(err.message || 'Check-out failed');

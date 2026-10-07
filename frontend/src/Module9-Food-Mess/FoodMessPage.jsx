@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../Module1-Authentication/AuthContext';
 import { foodService } from './foodService';
 
+import { syncHub } from '../utils/syncHub';
+
 const MEAL_TIMES = {
   BREAKFAST: { label: 'Breakfast', icon: '🍳', time: '07:30 AM – 09:30 AM', color: '#f59e0b' },
   LUNCH:     { label: 'Lunch',     icon: '🍛', time: '12:30 PM – 02:30 PM', color: '#10b981' },
@@ -71,11 +73,21 @@ export default function FoodMessPage() {
     loadData();
   }, [loadData]);
 
-  // Periodic background refresh every 20 seconds for opt-outs and menu changes
+  // Instant cross-tab sync listener
+  useEffect(() => {
+    const unsubscribe = syncHub.subscribe((evt) => {
+      if (evt.module === 'FOOD') {
+        loadData();
+      }
+    });
+    return unsubscribe;
+  }, [loadData]);
+
+  // Periodic background refresh every 10 seconds for opt-outs and menu changes
   useEffect(() => {
     const interval = setInterval(() => {
       loadData();
-    }, 20000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [loadData]);
 
@@ -113,6 +125,7 @@ export default function FoodMessPage() {
       setSuccessMsg(`Thank you for rating today's ${activeMenuForFeedback.mealType}!`);
       setActiveMenuForFeedback(null);
       setFeedbackForm({ rating: 5, comment: '' });
+      syncHub.emit('FOOD', 'RATED');
       loadData();
     } catch (err) {
       setError(err.message || 'Failed to record feedback');
@@ -136,6 +149,7 @@ export default function FoodMessPage() {
       });
       setSuccessMsg(`You have opted out of ${activeMenuForOptOut.mealType} on ${activeMenuForOptOut.menuDate}. Food waste prevented!`);
       setActiveMenuForOptOut(null);
+      syncHub.emit('FOOD', 'OPT_OUT');
       loadData();
     } catch (err) {
       setError(err.message || 'Failed to opt out');
@@ -151,6 +165,7 @@ export default function FoodMessPage() {
     try {
       await foodService.cancelOptOut(menu.menuDate, menu.mealType);
       setSuccessMsg(`Meal opt-out cancelled for ${menu.mealType}. Your meal will be served!`);
+      syncHub.emit('FOOD', 'CANCEL_OPT_OUT');
       loadData();
     } catch (err) {
       setError(err.message || 'Failed to cancel opt-out');

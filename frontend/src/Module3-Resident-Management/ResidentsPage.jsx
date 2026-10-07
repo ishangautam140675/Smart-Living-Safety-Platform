@@ -3,6 +3,7 @@ import { useAuth } from '../Module1-Authentication/AuthContext';
 import { residentService } from './residentService';
 import { roomService } from '../Module2-Property-And-Rooms/roomService';
 import { sanitizeMobileInput, getEmailFeedback, getPhoneFeedback } from '../utils/validation';
+import { syncHub } from '../utils/syncHub';
 
 
 export default function ResidentsPage() {
@@ -59,11 +60,21 @@ export default function ResidentsPage() {
     loadData();
   }, [searchQuery, statusFilter]);
 
-  // Auto-refresh every 20 seconds so changes by resident or admin sync seamlessly
+  // Instant cross-tab sync listener
+  useEffect(() => {
+    const unsubscribe = syncHub.subscribe((evt) => {
+      if (evt.module === 'RESIDENTS' || evt.module === 'ROOMS') {
+        loadData(false);
+      }
+    });
+    return unsubscribe;
+  }, [searchQuery, statusFilter]);
+
+  // Fallback periodic sync every 10 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       loadData(false);
-    }, 20000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [searchQuery, statusFilter]);
 
@@ -151,6 +162,7 @@ export default function ResidentsPage() {
         permanentAddress: '',
       });
       await loadData();
+      syncHub.emit('RESIDENTS', 'ONBOARDED', { resident: created });
     } catch (err) {
       setError(err.message || 'Onboarding failed');
     } finally {
@@ -167,6 +179,7 @@ export default function ResidentsPage() {
     try {
       await residentService.checkoutResident(residentId);
       setSuccessMsg(`Resident ${residentName} checked out successfully`);
+      syncHub.emit('RESIDENTS', 'CHECKOUT', { residentId });
       await loadData();
     } catch (err) {
       setError(err.message || 'Checkout failed');
@@ -182,6 +195,7 @@ export default function ResidentsPage() {
       setMyProfile(updated);
       setEditingMyProfile(false);
       setSuccessMsg('Your emergency contact information has been updated successfully!');
+      syncHub.emit('RESIDENTS', 'PROFILE_UPDATED', { residentId: updated?.id });
     } catch (err) {
       setError(err.message || 'Failed to update profile');
     }

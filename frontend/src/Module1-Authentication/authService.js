@@ -16,6 +16,8 @@ export const authService = {
     const { token, id, email: userEmail, fullName, roles } = result.data;
     const user = { id, email: userEmail, fullName, roles };
 
+    sessionStorage.setItem('smart_token', token);
+    sessionStorage.setItem('smart_user', JSON.stringify(user));
     localStorage.setItem('smart_token', token);
     localStorage.setItem('smart_user', JSON.stringify(user));
 
@@ -42,6 +44,8 @@ export const authService = {
     const { token, id, email: userEmail, fullName: userFullName, roles } = result.data;
     const user = { id, email: userEmail, fullName: userFullName, roles };
 
+    sessionStorage.setItem('smart_token', token);
+    sessionStorage.setItem('smart_user', JSON.stringify(user));
     localStorage.setItem('smart_token', token);
     localStorage.setItem('smart_user', JSON.stringify(user));
 
@@ -70,16 +74,18 @@ export const authService = {
   },
 
   logout() {
+    sessionStorage.removeItem('smart_token');
+    sessionStorage.removeItem('smart_user');
     localStorage.removeItem('smart_token');
     localStorage.removeItem('smart_user');
   },
 
   getToken() {
-    return localStorage.getItem('smart_token');
+    return sessionStorage.getItem('smart_token') || localStorage.getItem('smart_token');
   },
 
   getUser() {
-    const userStr = localStorage.getItem('smart_user');
+    const userStr = sessionStorage.getItem('smart_user') || localStorage.getItem('smart_user');
     if (!userStr) return null;
     try {
       return JSON.parse(userStr);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../Module1-Authentication/AuthContext';
 import { complaintService } from './complaintService';
+import { syncHub } from '../utils/syncHub';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -158,12 +159,23 @@ export default function ComplaintsPage() {
     if (isResident) loadMyComplaints();
   }, [canViewAll, isResident, loadAdminData, loadMyComplaints]);
 
-  // Periodic background sync for complaints
+  // Instant cross-tab sync listener
+  useEffect(() => {
+    const unsubscribe = syncHub.subscribe((evt) => {
+      if (evt.module === 'COMPLAINTS') {
+        if (canViewAll) loadAdminData();
+        if (isResident) loadMyComplaints();
+      }
+    });
+    return unsubscribe;
+  }, [canViewAll, isResident, loadAdminData, loadMyComplaints]);
+
+  // Periodic background sync fallback every 10 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (canViewAll) loadAdminData();
       if (isResident) loadMyComplaints();
-    }, 20000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [canViewAll, isResident, loadAdminData, loadMyComplaints]);
 
@@ -182,6 +194,7 @@ export default function ComplaintsPage() {
       setSuccess('Your complaint has been submitted successfully!');
       setShowForm(false);
       setForm({ category: 'OTHER', title: '', description: '', priority: 'MEDIUM', roomId: '' });
+      syncHub.emit('COMPLAINTS', 'SUBMITTED');
       await loadMyComplaints();
     } catch (e) {
       setError(e.message);
@@ -207,6 +220,7 @@ export default function ComplaintsPage() {
       setSelectedComplaint(null);
       setNewStatus('');
       setResolutionNote('');
+      syncHub.emit('COMPLAINTS', 'STATUS_UPDATED', { complaintId: selectedComplaint.id, newStatus });
       await loadAdminData();
     } catch (e) {
       setError(e.message);

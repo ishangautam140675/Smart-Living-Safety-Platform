@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../Module1-Authentication/AuthContext';
 import { paymentService } from './paymentService';
 import { residentService } from '../Module3-Resident-Management/residentService';
+import { syncHub } from '../utils/syncHub';
 
 export default function PaymentsPage() {
   const { user } = useAuth();
@@ -72,11 +73,21 @@ export default function PaymentsPage() {
     loadData(true);
   }, [loadData]);
 
-  // Periodic background sync so payments made by residents reflect on admin screen
+  // Instant cross-tab sync listener
+  useEffect(() => {
+    const unsubscribe = syncHub.subscribe((evt) => {
+      if (evt.module === 'PAYMENTS') {
+        loadData(false);
+      }
+    });
+    return unsubscribe;
+  }, [loadData]);
+
+  // Periodic background sync fallback every 10 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       loadData(false);
-    }, 20000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [loadData]);
 
@@ -106,6 +117,7 @@ export default function PaymentsPage() {
       });
       setSuccessMsg(`Invoice ${created.invoiceNumber} created successfully for ₹${created.amount}!`);
       setShowCreateModal(false);
+      syncHub.emit('PAYMENTS', 'CREATED', { invoiceNumber: created.invoiceNumber });
       loadData();
     } catch (err) {
       setError(err.message || 'Invoice generation failed');
@@ -141,6 +153,7 @@ export default function PaymentsPage() {
       if (viewInvoice && viewInvoice.invoiceNumber === updated.invoiceNumber) {
         setViewInvoice(updated);
       }
+      syncHub.emit('PAYMENTS', 'PAID', { invoiceNumber: updated.invoiceNumber });
       loadData();
     } catch (err) {
       setError(err.message || 'Payment recording failed');
@@ -157,6 +170,7 @@ export default function PaymentsPage() {
     try {
       await paymentService.cancelInvoice(inv.invoiceNumber);
       setSuccessMsg(`Invoice ${inv.invoiceNumber} has been cancelled.`);
+      syncHub.emit('PAYMENTS', 'CANCELLED', { invoiceNumber: inv.invoiceNumber });
       loadData();
     } catch (err) {
       setError(err.message || 'Failed to cancel invoice');
@@ -171,6 +185,7 @@ export default function PaymentsPage() {
     try {
       await paymentService.deleteInvoice(inv.invoiceNumber);
       setSuccessMsg(`Invoice ${inv.invoiceNumber} permanently deleted.`);
+      syncHub.emit('PAYMENTS', 'DELETED', { invoiceNumber: inv.invoiceNumber });
       loadData();
     } catch (err) {
       setError(err.message || 'Failed to delete invoice');
@@ -185,6 +200,7 @@ export default function PaymentsPage() {
     try {
       const result = await paymentService.clearPaidInvoices();
       setSuccessMsg(`Cleared ${result.count} paid/cancelled invoice(s) from the ledger.`);
+      syncHub.emit('PAYMENTS', 'CLEARED_PAID', { count: result.count });
       loadData();
     } catch (err) {
       setError(err.message || 'Failed to clear invoices');
