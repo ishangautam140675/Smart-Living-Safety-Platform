@@ -127,5 +127,33 @@ export const foodService = {
       throw new Error(err.message || 'Failed to fetch mess summary');
     }
     return res.json();
+  },
+
+  // Admin/Staff deletes a specific meal menu entry
+  async deleteMenu(menuId) {
+    const res = await fetch(`${BASE_URL}/menu/${menuId}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to delete menu entry');
+    }
+  },
+
+  // Admin/Staff clears all old menu entries (older than a date)
+  async clearOldMenus(olderThan = '') {
+    const params = new URLSearchParams();
+    if (olderThan) params.append('olderThan', olderThan);
+    const url = params.toString() ? `${BASE_URL}/menu/clear-old?${params.toString()}` : `${BASE_URL}/menu/clear-old`;
+    const res = await fetch(url, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to clear old menus');
+    }
+    return res.json();
   }
 };

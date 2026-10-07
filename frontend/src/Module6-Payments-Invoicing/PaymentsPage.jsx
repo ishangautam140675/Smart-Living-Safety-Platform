@@ -141,6 +141,48 @@ export default function PaymentsPage() {
     }
   };
 
+  // Cancel invoice (marks as CANCELLED)
+  const handleCancelInvoice = async (inv) => {
+    if (!window.confirm(`Cancel invoice ${inv.invoiceNumber} for ${inv.residentName || 'resident'}?\nThis marks it as CANCELLED (no refund, no deletion).`)) return;
+    setError('');
+    setSuccessMsg('');
+    try {
+      await paymentService.cancelInvoice(inv.invoiceNumber);
+      setSuccessMsg(`Invoice ${inv.invoiceNumber} has been cancelled.`);
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to cancel invoice');
+    }
+  };
+
+  // Permanently delete invoice
+  const handleDeleteInvoice = async (inv) => {
+    if (!window.confirm(`⚠️ PERMANENTLY DELETE invoice ${inv.invoiceNumber}?\nThis cannot be undone.`)) return;
+    setError('');
+    setSuccessMsg('');
+    try {
+      await paymentService.deleteInvoice(inv.invoiceNumber);
+      setSuccessMsg(`Invoice ${inv.invoiceNumber} permanently deleted.`);
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to delete invoice');
+    }
+  };
+
+  // Clear all PAID + CANCELLED invoices from ledger
+  const handleClearPaid = async () => {
+    if (!window.confirm('Clear ALL paid and cancelled invoices from the ledger?\nThis cannot be undone.')) return;
+    setError('');
+    setSuccessMsg('');
+    try {
+      const result = await paymentService.clearPaidInvoices();
+      setSuccessMsg(`Cleared ${result.count} paid/cancelled invoice(s) from the ledger.`);
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to clear invoices');
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'PAID':
@@ -189,13 +231,23 @@ export default function PaymentsPage() {
         </div>
 
         {isAdmin && (
-          <button
-            className="btn btn-primary"
-            onClick={() => setShowCreateModal(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            <span>➕</span> Generate Invoice
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              className="btn btn-primary"
+              onClick={() => setShowCreateModal(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <span>➕</span> Generate Invoice
+            </button>
+            <button
+              className="btn btn-outline"
+              onClick={handleClearPaid}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: '#ef4444', color: '#ef4444' }}
+              title="Remove all PAID and CANCELLED invoices from the ledger"
+            >
+              🧹 Clear Paid
+            </button>
+          </div>
         )}
       </div>
 
@@ -329,23 +381,43 @@ export default function PaymentsPage() {
                       {getStatusBadge(inv.status)}
                     </td>
                     <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                         {inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
                           <button
                             className="btn btn-primary"
-                            style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', backgroundColor: '#10b981', border: 'none' }}
+                            style={{ padding: '0.35rem 0.7rem', fontSize: '0.78rem', backgroundColor: '#10b981', border: 'none' }}
                             onClick={() => openPayModal(inv)}
                           >
-                            Pay Dues
+                            Pay
                           </button>
                         )}
                         <button
                           className="btn btn-outline"
-                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+                          style={{ padding: '0.35rem 0.7rem', fontSize: '0.78rem' }}
                           onClick={() => setViewInvoice(inv)}
                         >
                           Receipt
                         </button>
+                        {isAdmin && inv.status !== 'PAID' && inv.status !== 'CANCELLED' && (
+                          <button
+                            className="btn btn-outline"
+                            style={{ padding: '0.35rem 0.7rem', fontSize: '0.78rem', borderColor: '#f59e0b', color: '#f59e0b' }}
+                            onClick={() => handleCancelInvoice(inv)}
+                            title="Mark as Cancelled"
+                          >
+                            ✕ Cancel
+                          </button>
+                        )}
+                        {isAdmin && (
+                          <button
+                            className="btn btn-outline"
+                            style={{ padding: '0.35rem 0.7rem', fontSize: '0.78rem', borderColor: '#ef4444', color: '#ef4444' }}
+                            onClick={() => handleDeleteInvoice(inv)}
+                            title="Permanently delete"
+                          >
+                            🗑️
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

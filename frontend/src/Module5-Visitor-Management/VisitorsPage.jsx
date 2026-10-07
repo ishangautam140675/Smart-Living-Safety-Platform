@@ -159,6 +159,34 @@ export default function VisitorsPage() {
     }
   };
 
+  // Cancel visitor pass (marks as EXPIRED)
+  const handleCancelPass = async (pass) => {
+    if (!window.confirm(`Cancel visitor pass ${pass.passCode} for "${pass.visitorName}"?\nThis marks it as expired.`)) return;
+    setError('');
+    setSuccessMsg('');
+    try {
+      await visitorService.cancelPass(pass.passCode);
+      setSuccessMsg(`Visitor pass ${pass.passCode} cancelled.`);
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to cancel pass');
+    }
+  };
+
+  // Permanently delete a visitor pass (Admin only)
+  const handleDeletePass = async (pass) => {
+    if (!window.confirm(`⚠️ Permanently DELETE pass ${pass.passCode} for "${pass.visitorName}"?\nThis cannot be undone.`)) return;
+    setError('');
+    setSuccessMsg('');
+    try {
+      await visitorService.deletePass(pass.passCode);
+      setSuccessMsg(`Visitor pass ${pass.passCode} permanently deleted.`);
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to delete pass');
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'APPROVED':
@@ -412,24 +440,44 @@ export default function VisitorsPage() {
                     </td>
                     {isSecurityOrAdmin && (
                       <td style={{ padding: '0.75rem 1rem' }}>
-                        {pass.status === 'APPROVED' && (
+                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                          {pass.status === 'APPROVED' && (
+                            <button
+                              className="btn btn-outline"
+                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#10b981', borderColor: '#10b981' }}
+                              onClick={() => setActiveCheckInPass(pass)}
+                            >
+                              Check-In
+                            </button>
+                          )}
+                          {pass.status === 'CHECKED_IN' && (
+                            <button
+                              className="btn btn-outline"
+                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#64748b', borderColor: '#64748b' }}
+                              onClick={() => handleCheckOut(pass.passCode)}
+                            >
+                              Check-Out
+                            </button>
+                          )}
+                          {pass.status !== 'CHECKED_IN' && pass.status !== 'CHECKED_OUT' && pass.status !== 'EXPIRED' && (
+                            <button
+                              className="btn btn-outline"
+                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#f59e0b', borderColor: '#f59e0b' }}
+                              onClick={() => handleCancelPass(pass)}
+                              title="Cancel / expire this pass"
+                            >
+                              ✕
+                            </button>
+                          )}
                           <button
                             className="btn btn-outline"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#10b981', borderColor: '#10b981' }}
-                            onClick={() => setActiveCheckInPass(pass)}
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#ef4444', borderColor: '#ef4444' }}
+                            onClick={() => handleDeletePass(pass)}
+                            title="Permanently delete pass record"
                           >
-                            Check-In
+                            🗑️
                           </button>
-                        )}
-                        {pass.status === 'CHECKED_IN' && (
-                          <button
-                            className="btn btn-outline"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#64748b', borderColor: '#64748b' }}
-                            onClick={() => handleCheckOut(pass.passCode)}
-                          >
-                            Check-Out
-                          </button>
-                        )}
+                        </div>
                       </td>
                     )}
                   </tr>

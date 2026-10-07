@@ -197,6 +197,20 @@ export default function InventoryPage() {
     }
   };
 
+  // Delete Asset permanently
+  const handleDeleteAsset = async (a) => {
+    if (!window.confirm(`⚠️ Permanently DELETE asset [${a.assetTag}] "${a.name}"?\nThis removes its audit history too.`)) return;
+    setError('');
+    setSuccessMsg('');
+    try {
+      await inventoryService.deleteAsset(a.id);
+      setSuccessMsg(`Asset ${a.assetTag} (${a.name}) permanently deleted.`);
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to delete asset');
+    }
+  };
+
   const getConditionBadge = (cond) => {
     switch (cond) {
       case 'FUNCTIONAL':
@@ -421,6 +435,16 @@ export default function InventoryPage() {
                         >
                           📜 History
                         </button>
+                        {isStaffOrAdmin && (
+                          <button
+                            onClick={() => handleDeleteAsset(a)}
+                            className="btn btn-outline"
+                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', borderColor: '#ef4444', color: '#ef4444' }}
+                            title="Permanently delete asset"
+                          >
+                            🗑️
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

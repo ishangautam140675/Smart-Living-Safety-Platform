@@ -175,6 +175,25 @@ public class VisitorService {
         return new VisitorSummaryResponse(total, active, expectedToday, checkedOut, pending);
     }
 
+    public VisitorPassResponse cancelPass(String passCode) {
+        VisitorPass pass = visitorPassRepository.findByPassCode(passCode.trim().toUpperCase())
+                .orElseThrow(() -> new ResourceNotFoundException("Visitor pass not found with code: " + passCode));
+        if (pass.getStatus() == VisitorPassStatus.CHECKED_IN) {
+            throw new AppException("Cannot cancel a pass that is currently checked in. Check-out first.");
+        }
+        pass.setStatus(VisitorPassStatus.EXPIRED);
+        VisitorPass saved = visitorPassRepository.save(pass);
+        log.info("Visitor pass [{}] cancelled/expired by admin/staff.", passCode);
+        return toResponse(saved);
+    }
+
+    public void deletePass(String passCode) {
+        VisitorPass pass = visitorPassRepository.findByPassCode(passCode.trim().toUpperCase())
+                .orElseThrow(() -> new ResourceNotFoundException("Visitor pass not found with code: " + passCode));
+        visitorPassRepository.delete(pass);
+        log.info("Visitor pass [{}] permanently deleted.", passCode);
+    }
+
     private String generatePassCode() {
         return "VP-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
     }

@@ -134,6 +134,36 @@ public class PaymentService {
         return toResponse(updated);
     }
 
+    public InvoiceResponse cancelInvoice(String invoiceNumber) {
+        Invoice invoice = invoiceRepository.findByInvoiceNumber(invoiceNumber.trim().toUpperCase())
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with number: " + invoiceNumber));
+
+        if (invoice.getStatus() == PaymentStatus.PAID) {
+            throw new AppException("Cannot cancel an already paid invoice.");
+        }
+        invoice.setStatus(PaymentStatus.CANCELLED);
+        Invoice saved = invoiceRepository.save(invoice);
+        log.info("Invoice [{}] cancelled.", invoiceNumber);
+        return toResponse(saved);
+    }
+
+    public void deleteInvoice(String invoiceNumber) {
+        Invoice invoice = invoiceRepository.findByInvoiceNumber(invoiceNumber.trim().toUpperCase())
+                .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with number: " + invoiceNumber));
+        invoiceRepository.delete(invoice);
+        log.info("Invoice [{}] permanently deleted.", invoiceNumber);
+    }
+
+    public long clearPaidInvoices() {
+        List<Invoice> paid = invoiceRepository.findByStatusOrderByDueDateAsc(PaymentStatus.PAID);
+        List<Invoice> cancelled = invoiceRepository.findByStatusOrderByDueDateAsc(PaymentStatus.CANCELLED);
+        long count = paid.size() + cancelled.size();
+        invoiceRepository.deleteAll(paid);
+        invoiceRepository.deleteAll(cancelled);
+        log.info("Cleared {} paid/cancelled invoices from the ledger.", count);
+        return count;
+    }
+
     @Transactional(readOnly = true)
     public PaymentSummaryResponse getSummary() {
         long total = invoiceRepository.count();

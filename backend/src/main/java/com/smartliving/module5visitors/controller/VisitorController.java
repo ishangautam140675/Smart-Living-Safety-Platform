@@ -80,4 +80,18 @@ public class VisitorController {
         VisitorSummaryResponse summary = visitorService.getSummary();
         return ResponseEntity.ok(summary);
     }
+
+    @PutMapping("/passes/{code}/cancel")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SECURITY', 'STAFF')")
+    public ResponseEntity<VisitorPassResponse> cancelPass(@PathVariable String code) {
+        VisitorPassResponse response = visitorService.cancelPass(code);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/passes/{code}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<Void> deletePass(@PathVariable String code) {
+        visitorService.deletePass(code);
+        return ResponseEntity.noContent().build();
+    }
 }

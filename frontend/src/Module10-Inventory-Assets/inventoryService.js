@@ -103,5 +103,17 @@ export const inventoryService = {
       throw new Error(err.message || 'Failed to fetch inventory summary');
     }
     return res.json();
+  },
+
+  // Admin/Staff permanently deletes an asset
+  async deleteAsset(id) {
+    const res = await fetch(`${BASE_URL}/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to delete asset');
+    }
   }
 };

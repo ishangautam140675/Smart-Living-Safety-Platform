@@ -21,4 +21,6 @@ public interface MealOptOutRepository extends JpaRepository<MealOptOut, Long> {
     long countByOptOutDateAndMealType(LocalDate optOutDate, MealType mealType);
 
     long countByOptOutDate(LocalDate optOutDate);
+
+    List<MealOptOut> findByOptOutDateAndMealType(LocalDate optOutDate, MealType mealType);
 }

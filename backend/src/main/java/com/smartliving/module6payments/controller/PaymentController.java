@@ -68,4 +68,25 @@ public class PaymentController {
         PaymentSummaryResponse summary = paymentService.getSummary();
         return ResponseEntity.ok(summary);
     }
+
+    @PutMapping("/invoices/{invoiceNumber}/cancel")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<InvoiceResponse> cancelInvoice(@PathVariable String invoiceNumber) {
+        InvoiceResponse response = paymentService.cancelInvoice(invoiceNumber);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/invoices/{invoiceNumber}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteInvoice(@PathVariable String invoiceNumber) {
+        paymentService.deleteInvoice(invoiceNumber);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/invoices/clear-paid")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<java.util.Map<String, Object>> clearPaidInvoices() {
+        long count = paymentService.clearPaidInvoices();
+        return ResponseEntity.ok(java.util.Map.of("message", "Cleared paid/cancelled invoices", "count", count));
+    }
 }

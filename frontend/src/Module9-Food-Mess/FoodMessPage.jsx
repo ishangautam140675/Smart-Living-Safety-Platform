@@ -162,6 +162,34 @@ export default function FoodMessPage() {
     setShowMenuModal(true);
   };
 
+  // Delete a single menu entry (Admin/Staff)
+  const handleDeleteMenu = async (menu) => {
+    if (!window.confirm(`Delete ${menu.mealType} menu for ${menu.menuDate}?\nThis also removes related opt-outs and ratings.`)) return;
+    setError('');
+    setSuccessMsg('');
+    try {
+      await foodService.deleteMenu(menu.id);
+      setSuccessMsg(`${menu.mealType} menu for ${menu.menuDate} deleted.`);
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to delete menu');
+    }
+  };
+
+  // Clear all old menus (Admin/Staff)
+  const handleClearOldMenus = async () => {
+    if (!window.confirm('Clear ALL meal menu entries older than 7 days?\nThis removes related opt-outs and ratings too.')) return;
+    setError('');
+    setSuccessMsg('');
+    try {
+      const result = await foodService.clearOldMenus();
+      setSuccessMsg(`Cleared ${result.count} old menu entries from the database.`);
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to clear old menus');
+    }
+  };
+
   // Unauthenticated Guard Screen
   if (!user) {
     return (
@@ -200,24 +228,34 @@ export default function FoodMessPage() {
           />
 
           {isAdminOrStaff && (
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                setMenuForm({
-                  menuDate: selectedDate,
-                  mealType: 'BREAKFAST',
-                  title: '',
-                  items: '',
-                  isVeg: true,
-                  dietaryNotes: '',
-                  calories: '450 kcal'
-                });
-                setShowMenuModal(true);
-              }}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              <span>➕</span> Add / Update Menu
-            </button>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setMenuForm({
+                    menuDate: selectedDate,
+                    mealType: 'BREAKFAST',
+                    title: '',
+                    items: '',
+                    isVeg: true,
+                    dietaryNotes: '',
+                    calories: '450 kcal'
+                  });
+                  setShowMenuModal(true);
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <span>➕</span> Add / Update Menu
+              </button>
+              <button
+                className="btn btn-outline"
+                onClick={handleClearOldMenus}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: '#ef4444', color: '#ef4444' }}
+                title="Remove all menu entries older than 7 days"
+              >
+                🧹 Clear Old
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -395,13 +433,23 @@ export default function FoodMessPage() {
                   )}
 
                   {isAdminOrStaff && (
-                    <button
-                      onClick={() => openEditModal(menu)}
-                      className="btn btn-outline"
-                      style={{ flex: 1, fontSize: '0.85rem' }}
-                    >
-                      ✏️ Edit Menu
-                    </button>
+                    <>
+                      <button
+                        onClick={() => openEditModal(menu)}
+                        className="btn btn-outline"
+                        style={{ flex: 1, fontSize: '0.85rem' }}
+                      >
+                        ✏️ Edit Menu
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMenu(menu)}
+                        className="btn btn-outline"
+                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem', borderColor: '#ef4444', color: '#ef4444' }}
+                        title="Delete this menu entry"
+                      >
+                        🗑️
+                      </button>
+                    </>
                   )}
                 </div>
               </div>

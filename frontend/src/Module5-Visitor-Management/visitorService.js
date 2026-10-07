@@ -109,5 +109,30 @@ export const visitorService = {
       throw new Error(err.message || 'Failed to fetch visitor statistics');
     }
     return res.json();
+  },
+
+  // Cancel a visitor pass (mark as EXPIRED) - Admin/Security/Staff
+  async cancelPass(passCode) {
+    const res = await fetch(`${BASE_URL}/passes/${encodeURIComponent(passCode)}/cancel`, {
+      method: 'PUT',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to cancel visitor pass');
+    }
+    return res.json();
+  },
+
+  // Permanently delete a visitor pass (Admin only)
+  async deletePass(passCode) {
+    const res = await fetch(`${BASE_URL}/passes/${encodeURIComponent(passCode)}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to delete visitor pass');
+    }
   }
 };

@@ -193,6 +193,35 @@ public class FoodService {
         );
     }
 
+    public void deleteMenu(Long menuId) {
+        MealMenu menu = menuRepository.findById(menuId)
+                .orElseThrow(() -> new ResourceNotFoundException("Meal menu not found with id: " + menuId));
+        // Delete related opt-outs and feedbacks first
+        optOutRepository.deleteAll(
+            optOutRepository.findByOptOutDateAndMealType(menu.getMenuDate(), menu.getMealType())
+                .stream().collect(java.util.stream.Collectors.toList())
+        );
+        feedbackRepository.deleteAll(feedbackRepository.findByMealMenuId(menuId));
+        menuRepository.delete(menu);
+        log.info("Deleted meal menu #{} [{} on {}]", menuId, menu.getMealType(), menu.getMenuDate());
+    }
+
+    public long clearOldMenus(LocalDate olderThan) {
+        LocalDate cutoff = (olderThan != null) ? olderThan : LocalDate.now().minusDays(7);
+        List<MealMenu> old = menuRepository.findByMenuDateBetweenOrderByMenuDateAscMealTypeAsc(LocalDate.of(2000, 1, 1), cutoff);
+        long count = old.size();
+        old.forEach(m -> {
+            optOutRepository.deleteAll(
+                optOutRepository.findByOptOutDateAndMealType(m.getMenuDate(), m.getMealType())
+                    .stream().collect(java.util.stream.Collectors.toList())
+            );
+            feedbackRepository.deleteAll(feedbackRepository.findByMealMenuId(m.getId()));
+        });
+        menuRepository.deleteAll(old);
+        log.info("Cleared {} old meal menu entries older than {}", count, cutoff);
+        return count;
+    }
+
     private Resident resolveResident(String email) {
         if (email == null) return null;
         return residentRepository.findByUserEmail(email).orElse(null);

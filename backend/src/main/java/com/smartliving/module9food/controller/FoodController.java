@@ -98,4 +98,19 @@ public class FoodController {
         MessSummaryResponse summary = foodService.getMessSummary(date);
         return ResponseEntity.ok(summary);
     }
+
+    @DeleteMapping("/menu/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<Void> deleteMenu(@PathVariable Long id) {
+        foodService.deleteMenu(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/menu/clear-old")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<java.util.Map<String, Object>> clearOldMenus(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate olderThan) {
+        long count = foodService.clearOldMenus(olderThan);
+        return ResponseEntity.ok(java.util.Map.of("message", "Cleared old menu entries", "count", count));
+    }
 }

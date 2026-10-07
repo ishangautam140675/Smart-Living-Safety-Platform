@@ -79,4 +79,11 @@ public class InventoryController {
         InventorySummaryResponse summary = inventoryService.getInventorySummary();
         return ResponseEntity.ok(summary);
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STAFF')")
+    public ResponseEntity<Void> deleteAsset(@PathVariable Long id) {
+        inventoryService.deleteAsset(id);
+        return ResponseEntity.noContent().build();
+    }
 }

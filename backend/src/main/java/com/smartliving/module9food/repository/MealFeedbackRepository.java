@@ -13,6 +13,8 @@ public interface MealFeedbackRepository extends JpaRepository<MealFeedback, Long
 
     List<MealFeedback> findByMealMenuIdOrderByCreatedAtDesc(Long mealMenuId);
 
+    List<MealFeedback> findByMealMenuId(Long mealMenuId);
+
     long countByMealMenuId(Long mealMenuId);
 
     @Query("SELECT AVG(f.rating) FROM MealFeedback f WHERE f.mealMenu.id = :menuId")

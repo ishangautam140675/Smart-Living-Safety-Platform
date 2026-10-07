@@ -133,6 +133,15 @@ public class InventoryService {
         return toResponse(saved);
     }
 
+    public void deleteAsset(Long id) {
+        AssetItem asset = assetRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Asset not found with id: " + id));
+        // Delete audit logs first
+        auditLogRepository.deleteAll(auditLogRepository.findByAssetItemIdOrderByAuditedAtDesc(id));
+        assetRepository.delete(asset);
+        log.info("Permanently deleted asset [{}] - '{}'", asset.getAssetTag(), asset.getName());
+    }
+
     @Transactional(readOnly = true)
     public List<AssetResponse> searchAssets(String keyword, AssetCategory category, AssetCondition condition, Long roomId) {
         String kw = (keyword == null) ? "" : keyword.trim();
