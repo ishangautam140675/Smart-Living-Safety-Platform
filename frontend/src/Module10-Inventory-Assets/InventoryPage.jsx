@@ -100,6 +100,14 @@ export default function InventoryPage() {
     loadData();
   }, [loadData]);
 
+  // Periodic background refresh every 20 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData();
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [loadData]);
+
   // Open Create Modal
   const handleOpenCreate = () => {
     setEditingAssetId(null);
@@ -257,15 +265,25 @@ export default function InventoryPage() {
           </p>
         </div>
 
-        {isStaffOrAdmin && (
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button
-            className="btn btn-primary"
-            onClick={handleOpenCreate}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            className="btn btn-outline"
+            onClick={() => loadData()}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            title="Refresh assets directory"
           >
-            <span>➕</span> Register New Asset
+            🔄 Refresh
           </button>
-        )}
+          {isStaffOrAdmin && (
+            <button
+              className="btn btn-primary"
+              onClick={handleOpenCreate}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <span>➕</span> Register New Asset
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Alerts */}
