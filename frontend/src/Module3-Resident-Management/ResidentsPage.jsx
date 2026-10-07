@@ -98,8 +98,8 @@ export default function ResidentsPage() {
           .catch(() => {});
       }
 
-      // If authorized for directory/summary
-      if (canViewDirectory || !isAuthenticated) {
+      // If authorized for directory/summary (Admin/Staff/Security only)
+      if (canViewDirectory) {
         const [sumData, resList, roomsList] = await Promise.all([
           residentService.getResidentSummary().catch(() => null),
           residentService.getResidents({ search: searchQuery, status: statusFilter }).catch(() => []),
@@ -124,7 +124,9 @@ export default function ResidentsPage() {
         setAvailableBeds(freeBeds);
       }
     } catch (err) {
-      setError(err.message || 'Failed to load resident data');
+      if (!isResident) {
+        setError(err.message || 'Failed to load resident data');
+      }
     } finally {
       setLoading(false);
     }

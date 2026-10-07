@@ -1,7 +1,9 @@
+import { authService } from '../Module1-Authentication/authService';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 function getAuthHeaders() {
-  const token = localStorage.getItem('smart_token');
+  const token = authService.getToken();
   return {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
