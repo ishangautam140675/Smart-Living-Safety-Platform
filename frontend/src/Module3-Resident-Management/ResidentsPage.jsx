@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../Module1-Authentication/AuthContext';
 import { residentService } from './residentService';
 import { roomService } from '../Module2-Property-And-Rooms/roomService';
+import { sanitizeMobileInput, getEmailFeedback, getPhoneFeedback } from '../utils/validation';
+
 
 export default function ResidentsPage() {
   const { user, isAuthenticated } = useAuth();
@@ -489,16 +491,32 @@ export default function ResidentsPage() {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Phone *
+                Phone * <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.78rem' }}>(10-digit mobile)</span>
               </label>
               <input
-                type="text"
+                type="tel"
                 required
                 value={onboardForm.phone}
-                onChange={(e) => setOnboardForm({ ...onboardForm, phone: e.target.value })}
-                placeholder="+91-9871122334"
-                style={{ width: '100%', padding: '0.55rem', border: '1px solid var(--border)', borderRadius: '0.375rem' }}
+                onChange={(e) => {
+                  const digits = sanitizeMobileInput(e.target.value);
+                  setOnboardForm({ ...onboardForm, phone: digits });
+                }}
+                placeholder="9876543210"
+                maxLength={10}
+                pattern="[6-9][0-9]{9}"
+                style={{
+                  width: '100%',
+                  padding: '0.55rem',
+                  border: '1px solid var(--border)',
+                  borderRadius: '0.375rem',
+                  letterSpacing: onboardForm.phone.length > 0 ? '0.08em' : 'normal',
+                }}
               />
+              {onboardForm.phone && (
+                <span style={{ fontSize: '0.75rem', color: /^[6-9]\d{9}$/.test(onboardForm.phone) ? '#10b981' : '#ef4444', marginTop: '0.2rem', display: 'block' }}>
+                  {/^[6-9]\d{9}$/.test(onboardForm.phone) ? `✓ Valid mobile (${onboardForm.phone.length}/10)` : `⚠️ ${onboardForm.phone.length}/10 digits — must start with 6-9`}
+                </span>
+              )}
             </div>
 
             <div>
@@ -533,16 +551,32 @@ export default function ResidentsPage() {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
-                Emergency Contact Phone *
+                Emergency Contact Phone * <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.78rem' }}>(10-digit)</span>
               </label>
               <input
-                type="text"
+                type="tel"
                 required
                 value={onboardForm.emergencyContactPhone}
-                onChange={(e) => setOnboardForm({ ...onboardForm, emergencyContactPhone: e.target.value })}
-                placeholder="+91-9871100000"
-                style={{ width: '100%', padding: '0.55rem', border: '1px solid var(--border)', borderRadius: '0.375rem' }}
+                onChange={(e) => {
+                  const digits = sanitizeMobileInput(e.target.value);
+                  setOnboardForm({ ...onboardForm, emergencyContactPhone: digits });
+                }}
+                placeholder="9871100000"
+                maxLength={10}
+                pattern="[6-9][0-9]{9}"
+                style={{
+                  width: '100%',
+                  padding: '0.55rem',
+                  border: '1px solid var(--border)',
+                  borderRadius: '0.375rem',
+                  letterSpacing: onboardForm.emergencyContactPhone.length > 0 ? '0.08em' : 'normal',
+                }}
               />
+              {onboardForm.emergencyContactPhone && (
+                <span style={{ fontSize: '0.75rem', color: /^[6-9]\d{9}$/.test(onboardForm.emergencyContactPhone) ? '#10b981' : '#ef4444', marginTop: '0.2rem', display: 'block' }}>
+                  {/^[6-9]\d{9}$/.test(onboardForm.emergencyContactPhone) ? '✓ Valid' : `⚠️ ${onboardForm.emergencyContactPhone.length}/10 digits`}
+                </span>
+              )}
             </div>
 
             <div>

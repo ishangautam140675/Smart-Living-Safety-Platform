@@ -97,47 +97,112 @@ public class DataInitializer implements CommandLineRunner {
             property = propertyRepository.save(property);
 
             com.smartliving.module2propertyrooms.properties.model.Building blockA = new com.smartliving.module2propertyrooms.properties.model.Building(
-                    property, "Block A - Boys Wing", "A", 2, "Main accommodation block"
+                    property, "Block A - Boys Wing", "A", 3, "Main accommodation block"
             );
             blockA = buildingRepository.save(blockA);
 
+            com.smartliving.module2propertyrooms.properties.model.Building blockB = new com.smartliving.module2propertyrooms.properties.model.Building(
+                    property, "Block B - Girls Wing", "B", 2, "Premium girls accommodation block"
+            );
+            blockB = buildingRepository.save(blockB);
+
+            // Block A Floors
             com.smartliving.module2propertyrooms.properties.model.Floor floor1 = floorRepository.save(
-                    new com.smartliving.module2propertyrooms.properties.model.Floor(blockA, 1, "First Floor")
+                    new com.smartliving.module2propertyrooms.properties.model.Floor(blockA, 1, "Ground Floor")
             );
             com.smartliving.module2propertyrooms.properties.model.Floor floor2 = floorRepository.save(
-                    new com.smartliving.module2propertyrooms.properties.model.Floor(blockA, 2, "Second Floor")
+                    new com.smartliving.module2propertyrooms.properties.model.Floor(blockA, 2, "First Floor")
+            );
+            com.smartliving.module2propertyrooms.properties.model.Floor floor3 = floorRepository.save(
+                    new com.smartliving.module2propertyrooms.properties.model.Floor(blockA, 3, "Second Floor - Premium")
             );
 
-            // Rooms on Floor 1
+            // Block B Floors
+            com.smartliving.module2propertyrooms.properties.model.Floor floorB1 = floorRepository.save(
+                    new com.smartliving.module2propertyrooms.properties.model.Floor(blockB, 1, "Ground Floor")
+            );
+            com.smartliving.module2propertyrooms.properties.model.Floor floorB2 = floorRepository.save(
+                    new com.smartliving.module2propertyrooms.properties.model.Floor(blockB, 2, "First Floor - Premium")
+            );
+
+            // ─── Block A, Ground Floor ───────────────────────────────
             com.smartliving.module2propertyrooms.rooms.dto.RoomRequest r101 = new com.smartliving.module2propertyrooms.rooms.dto.RoomRequest();
             r101.setFloorId(floor1.getId());
             r101.setRoomNumber("101");
             r101.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.DOUBLE);
             r101.setCapacity(2);
             r101.setBaseRent(new java.math.BigDecimal("7500.00"));
-            r101.setDescription("AC Double Sharing with attached bathroom");
+            r101.setDescription("AC Double Sharing with attached bathroom, study desks, wardrobe, and high-speed Wi-Fi. Ideal for students.");
             var r101Created = roomService.createRoom(r101);
 
             com.smartliving.module2propertyrooms.rooms.dto.RoomRequest r102 = new com.smartliving.module2propertyrooms.rooms.dto.RoomRequest();
             r102.setFloorId(floor1.getId());
             r102.setRoomNumber("102");
-            r102.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.SINGLE);
-            r102.setCapacity(1);
-            r102.setBaseRent(new java.math.BigDecimal("12000.00"));
-            r102.setDescription("Premium Single Room with balcony");
+            r102.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.TRIPLE);
+            r102.setCapacity(3);
+            r102.setBaseRent(new java.math.BigDecimal("5500.00"));
+            r102.setDescription("Economy Triple Sharing with 3 study desks, ceiling fans, common bathroom. Best value for budget-conscious residents.");
             roomService.createRoom(r102);
 
-            // Rooms on Floor 2
+            com.smartliving.module2propertyrooms.rooms.dto.RoomRequest r103 = new com.smartliving.module2propertyrooms.rooms.dto.RoomRequest();
+            r103.setFloorId(floor1.getId());
+            r103.setRoomNumber("103");
+            r103.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.FOUR_SHARING);
+            r103.setCapacity(4);
+            r103.setBaseRent(new java.math.BigDecimal("4500.00"));
+            r103.setDescription("Four Sharing room with bunk beds, individual lockers, fans, and 24x7 power backup. Closest to common room.");
+            roomService.createRoom(r103);
+
+            // ─── Block A, First Floor ────────────────────────────────
             com.smartliving.module2propertyrooms.rooms.dto.RoomRequest r201 = new com.smartliving.module2propertyrooms.rooms.dto.RoomRequest();
             r201.setFloorId(floor2.getId());
             r201.setRoomNumber("201");
-            r201.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.TRIPLE);
-            r201.setCapacity(3);
-            r201.setBaseRent(new java.math.BigDecimal("6000.00"));
-            r201.setDescription("Economy Triple Sharing with study desks");
+            r201.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.SINGLE);
+            r201.setCapacity(1);
+            r201.setBaseRent(new java.math.BigDecimal("14000.00"));
+            r201.setDescription("Deluxe Premium Single Room with AC, private attached bath, balcony with garden view, 100 Mbps broadband. Perfect for professionals.");
             roomService.createRoom(r201);
 
-            log.info("Initialized default property, buildings, floors, rooms, and beds");
+            com.smartliving.module2propertyrooms.rooms.dto.RoomRequest r202 = new com.smartliving.module2propertyrooms.rooms.dto.RoomRequest();
+            r202.setFloorId(floor2.getId());
+            r202.setRoomNumber("202");
+            r202.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.DOUBLE);
+            r202.setCapacity(2);
+            r202.setBaseRent(new java.math.BigDecimal("8000.00"));
+            r202.setDescription("AC Double Sharing with attached bathroom, double wardrobes, LED TV, and city-facing balcony view.");
+            roomService.createRoom(r202);
+
+            // ─── Block A, Second Floor (Premium) ─────────────────────
+            com.smartliving.module2propertyrooms.rooms.dto.RoomRequest r301 = new com.smartliving.module2propertyrooms.rooms.dto.RoomRequest();
+            r301.setFloorId(floor3.getId());
+            r301.setRoomNumber("301-P");
+            r301.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.SINGLE);
+            r301.setCapacity(1);
+            r301.setBaseRent(new java.math.BigDecimal("16500.00"));
+            r301.setDescription("Premium Penthouse Single Room. Private terrace access, king-sized bed, attached luxury bath, AC, 24x7 hot water, smart TV. Top floor exclusive.");
+            roomService.createRoom(r301);
+
+            // ─── Block B, Ground Floor (Girls Wing) ─────────────────
+            com.smartliving.module2propertyrooms.rooms.dto.RoomRequest rB101 = new com.smartliving.module2propertyrooms.rooms.dto.RoomRequest();
+            rB101.setFloorId(floorB1.getId());
+            rB101.setRoomNumber("B101");
+            rB101.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.DOUBLE);
+            rB101.setCapacity(2);
+            rB101.setBaseRent(new java.math.BigDecimal("8500.00"));
+            rB101.setDescription("Girls Wing AC Double Sharing. Attached bathroom, vanity mirror, dressing area, wardrobe, safe locker, 24x7 CCTV secured corridor.");
+            roomService.createRoom(rB101);
+
+            // ─── Block B, First Floor (Girls Wing Premium) ───────────
+            com.smartliving.module2propertyrooms.rooms.dto.RoomRequest rB201 = new com.smartliving.module2propertyrooms.rooms.dto.RoomRequest();
+            rB201.setFloorId(floorB2.getId());
+            rB201.setRoomNumber("B201-P");
+            rB201.setRoomType(com.smartliving.module2propertyrooms.rooms.model.RoomType.SINGLE);
+            rB201.setCapacity(1);
+            rB201.setBaseRent(new java.math.BigDecimal("15000.00"));
+            rB201.setDescription("Premium Girls Wing Single Room. North-facing, peaceful, attached luxury bath, AC, study nook, built-in shelving, bio-metric door access.");
+            roomService.createRoom(rB201);
+
+            log.info("Initialized default property (2 buildings, 5 floors, 8 rooms) with beds across Block A & B");
 
             // Seed default resident allocated to first available bed
             var availableBeds = bedRepository.findByRoomIdAndStatus(

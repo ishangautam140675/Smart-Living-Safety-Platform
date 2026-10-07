@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { isValidEmail, getEmailFeedback, getPhoneFeedback, sanitizeMobileInput } from '../utils/validation';
 
 export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
@@ -11,22 +12,41 @@ export default function LoginPage() {
   const [role, setRole] = useState('ROLE_RESIDENT');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   const { login, register } = useAuth();
   const navigate = useNavigate();
+
+  const emailFeedback = emailTouched ? getEmailFeedback(email) : null;
+  const phoneFeedback = phoneTouched ? getPhoneFeedback(phone) : null;
 
   const handleFillDemoAdmin = () => {
     setIsRegister(false);
     setEmail('admin@smartliving.local');
     setPassword('Admin@12345');
     setError(null);
+    setEmailTouched(false);
+    setPhoneTouched(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
 
+    // Client-side validation
+    if (!isValidEmail(email)) {
+      setEmailTouched(true);
+      setError('Please enter a valid email address. Example: abcd123@gmail.com');
+      return;
+    }
+    if (isRegister && phone && !/^[6-9]\d{9}$/.test(phone.replace(/\D/g, ''))) {
+      setPhoneTouched(true);
+      setError('Please enter a valid 10-digit Indian mobile number.');
+      return;
+    }
+
+    setSubmitting(true);
     try {
       if (isRegister) {
         await register(fullName, email, password, phone, role);
@@ -176,10 +196,19 @@ export default function LoginPage() {
               type="email"
               className="form-control"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@smartliving.local"
+              onChange={(e) => { setEmail(e.target.value); setEmailTouched(true); }}
+              onBlur={() => setEmailTouched(true)}
+              placeholder="abcd123@gmail.com"
               required
+              style={{
+                borderColor: emailFeedback ? (emailFeedback.valid ? '#10b981' : '#ef4444') : undefined,
+              }}
             />
+            {emailFeedback && (
+              <span style={{ fontSize: '0.78rem', color: emailFeedback.valid ? '#10b981' : '#ef4444', marginTop: '0.25rem', display: 'block' }}>
+                {emailFeedback.message}
+              </span>
+            )}
           </div>
 
           <div>
@@ -201,15 +230,31 @@ export default function LoginPage() {
             <>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem', color: 'var(--text-main)' }}>
-                  Phone Number
+                  Phone Number <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: '0.78rem' }}>(10-digit Indian mobile)</span>
                 </label>
                 <input
                   type="tel"
                   className="form-control"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91-9876543210"
+                  onChange={(e) => {
+                    const digits = sanitizeMobileInput(e.target.value);
+                    setPhone(digits);
+                    setPhoneTouched(true);
+                  }}
+                  onBlur={() => setPhoneTouched(true)}
+                  placeholder="9876543210"
+                  maxLength={10}
+                  pattern="[6-9][0-9]{9}"
+                  style={{
+                    borderColor: phoneFeedback ? (phoneFeedback.valid ? '#10b981' : '#ef4444') : undefined,
+                    letterSpacing: phone.length > 0 ? '0.08em' : 'normal',
+                  }}
                 />
+                {phoneFeedback && (
+                  <span style={{ fontSize: '0.78rem', color: phoneFeedback.valid ? '#10b981' : '#ef4444', marginTop: '0.25rem', display: 'block' }}>
+                    {phoneFeedback.message}
+                  </span>
+                )}
               </div>
 
               <div>
