@@ -121,6 +121,10 @@ export default function AnalyticsReportsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const exportPdfReport = () => {
+    window.print();
+  };
+
   return (
     <div className="container" style={{ padding: '2rem 1rem 4rem' }}>
       {/* Top Banner */}
@@ -146,12 +150,15 @@ export default function AnalyticsReportsPage() {
             Real-time telemetry and unified cross-module intelligence aggregated across properties, residents, finances, mess, security, and staff operations.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button onClick={loadData} className="btn" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
-            🔄 Refresh Metrics
+            🔄 Refresh
           </button>
-          <button onClick={exportReport} className="btn btn-primary" style={{ background: '#3b82f6', border: 'none' }}>
-            📥 Export Report JSON
+          <button onClick={exportReport} className="btn btn-outline" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
+            📥 Export JSON
+          </button>
+          <button onClick={exportPdfReport} className="btn btn-primary" style={{ background: '#dc2626', border: 'none', fontWeight: 700 }}>
+            📄 Export PDF Report
           </button>
         </div>
       </div>

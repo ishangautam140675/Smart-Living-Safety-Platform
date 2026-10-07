@@ -119,6 +119,30 @@ async function updateComplaintStatus(id, data) {
   return res.json();
 }
 
+async function deleteComplaint(id) {
+  const res = await fetch(`${BASE_URL}/${id}`, {
+    method: 'DELETE',
+    headers: authHeader(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to delete complaint');
+  }
+  return true;
+}
+
+async function clearCompletedComplaints() {
+  const res = await fetch(`${BASE_URL}/clear-completed`, {
+    method: 'DELETE',
+    headers: authHeader(),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to clear completed complaints');
+  }
+  return res.json();
+}
+
 export const complaintService = {
   submitComplaint,
   getMyComplaints,
@@ -126,4 +150,6 @@ export const complaintService = {
   getComplaintSummary,
   getComplaintById,
   updateComplaintStatus,
+  deleteComplaint,
+  clearCompletedComplaints,
 };

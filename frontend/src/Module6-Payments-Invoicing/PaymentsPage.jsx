@@ -524,70 +524,145 @@ export default function PaymentsPage() {
       )}
 
       {/* Modal: Receipt / Invoice Ledger */}
-      {viewInvoice && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '580px', maxHeight: '90vh', overflowY: 'auto', padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #e2e8f0', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
-              <div>
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 800, margin: 0, color: '#1e293b' }}>INVOICE &amp; RECEIPT</h2>
-                <div style={{ fontFamily: 'monospace', fontWeight: 700, color: '#2563eb', fontSize: '1.1rem', marginTop: '0.25rem' }}>
-                  {viewInvoice.invoiceNumber}
+      {viewInvoice && (() => {
+        const netBase = Math.round(Number(viewInvoice.amount) / 1.18);
+        const cgst = Math.round((Number(viewInvoice.amount) - netBase) / 2);
+        const sgst = Number(viewInvoice.amount) - netBase - cgst;
+        const stayDays = 30; // standard billing cycle month
+        const dailyRate = Math.round(netBase / stayDays);
+
+        return (
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem', backdropFilter: 'blur(4px)' }}>
+            <div style={{ backgroundColor: '#ffffff', color: '#0f172a', borderRadius: '16px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '2rem', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #cbd5e1' }}>
+              
+              {/* Hotel / Living Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #e2e8f0', paddingBottom: '1.25rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '1.5rem' }}>🏨</span>
+                    <h2 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>TAX INVOICE &amp; STAY RECEIPT</h2>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
+                    Greenwood Student Living &bull; GSTIN: 29AABCS1429B1Z8
+                  </div>
+                  <div style={{ fontFamily: 'monospace', fontWeight: 800, color: '#2563eb', fontSize: '1.05rem', marginTop: '6px' }}>
+                    Receipt #{viewInvoice.invoiceNumber}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  {getStatusBadge(viewInvoice.status)}
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '6px' }}>Due Date: {viewInvoice.dueDate}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Cycle: {viewInvoice.billingMonth || 'Current Month'}</div>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                {getStatusBadge(viewInvoice.status)}
-                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.25rem' }}>Due: {viewInvoice.dueDate}</div>
-              </div>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-              <div>
-                <div style={{ color: '#64748b', fontSize: '0.8rem' }}>BILLED TO:</div>
-                <div style={{ fontWeight: 700 }}>{viewInvoice.residentName}</div>
-                <div>Room: {viewInvoice.roomNumber || 'N/A'} ({viewInvoice.buildingName || 'Hostel'})</div>
-                <div style={{ color: '#64748b' }}>{viewInvoice.residentEmail}</div>
+              {/* Guest & Room Details */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', background: '#f8fafc', padding: '1rem 1.25rem', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+                <div>
+                  <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' }}>GUEST / RESIDENT:</div>
+                  <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a', marginTop: '2px' }}>{viewInvoice.residentName}</div>
+                  <div style={{ color: '#334155', marginTop: '2px' }}>{viewInvoice.residentEmail}</div>
+                  <div style={{ color: '#64748b', marginTop: '2px' }}>Room: <strong>{viewInvoice.roomNumber || '101'}</strong> &bull; {viewInvoice.buildingName || 'Block A'}</div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase' }}>STAY DURATION:</div>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a', marginTop: '2px' }}>{stayDays} Days Stay Cycle</div>
+                  <div style={{ color: '#334155', marginTop: '2px' }}>Rate: ₹{dailyRate.toLocaleString()} / day</div>
+                  <div style={{ color: '#059669', fontWeight: 700, marginTop: '2px' }}>Amenities: Wi-Fi, Food &amp; Housekeeping Incl.</div>
+                </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ color: '#64748b', fontSize: '0.8rem' }}>BILLING SUMMARY:</div>
-                <div>Total Amount: <strong>₹{Number(viewInvoice.amount).toLocaleString()}</strong></div>
-                <div style={{ color: '#10b981' }}>Paid: <strong>₹{Number(viewInvoice.paidAmount).toLocaleString()}</strong></div>
-                <div style={{ color: '#ef4444', fontWeight: 700 }}>Due: ₹{Number(viewInvoice.balanceAmount).toLocaleString()}</div>
-              </div>
-            </div>
 
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
-              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.75rem', color: '#334155' }}>
-                📜 Transaction History ({viewInvoice.transactions?.length || 0})
-              </h3>
-              {(!viewInvoice.transactions || viewInvoice.transactions.length === 0) ? (
-                <p style={{ fontSize: '0.85rem', color: '#64748b', fontStyle: 'italic' }}>No payments recorded yet.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {viewInvoice.transactions.map((t) => (
-                    <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.6rem 0.75rem', borderRadius: '6px', background: '#f8fafc', fontSize: '0.85rem' }}>
-                      <div>
-                        <div style={{ fontWeight: 700, fontFamily: 'monospace' }}>{t.transactionReference}</div>
-                        <div style={{ color: '#64748b', fontSize: '0.75rem' }}>
-                          {t.paymentMethod} • {new Date(t.transactionTime).toLocaleString()} {t.notes ? `• ${t.notes}` : ''}
+              {/* Hotel-Style Itemized Bill Breakdown with GST */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #cbd5e1', textAlign: 'left', color: '#475569', fontSize: '0.75rem', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '8px 0' }}>Description</th>
+                      <th style={{ padding: '8px 0', textAlign: 'center' }}>SAC Code</th>
+                      <th style={{ padding: '8px 0', textAlign: 'right' }}>Taxable Amt</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '10px 0' }}>
+                        <div style={{ fontWeight: 600 }}>Accommodation &amp; Living Services ({stayDays} Days)</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Room #{viewInvoice.roomNumber || '101'}, Maintenance &amp; Electricity</div>
+                      </td>
+                      <td style={{ padding: '10px 0', textAlign: 'center', color: '#64748b' }}>9963</td>
+                      <td style={{ padding: '10px 0', textAlign: 'right', fontWeight: 600 }}>₹{netBase.toLocaleString()}</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #f1f5f9', color: '#475569' }}>
+                      <td style={{ padding: '8px 0' }}>CGST (Central Goods &amp; Service Tax @ 9%)</td>
+                      <td style={{ padding: '8px 0', textAlign: 'center' }}>-</td>
+                      <td style={{ padding: '8px 0', textAlign: 'right' }}>₹{cgst.toLocaleString()}</td>
+                    </tr>
+                    <tr style={{ borderBottom: '2px solid #cbd5e1', color: '#475569' }}>
+                      <td style={{ padding: '8px 0' }}>SGST (State Goods &amp; Service Tax @ 9%)</td>
+                      <td style={{ padding: '8px 0', textAlign: 'center' }}>-</td>
+                      <td style={{ padding: '8px 0', textAlign: 'right' }}>₹{sgst.toLocaleString()}</td>
+                    </tr>
+                    <tr style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
+                      <td style={{ padding: '12px 0' }}>TOTAL AMOUNT PAYABLE (INCL. GST)</td>
+                      <td style={{ padding: '12px 0', textAlign: 'center' }}>-</td>
+                      <td style={{ padding: '12px 0', textAlign: 'right', color: '#2563eb' }}>
+                        ₹{Number(viewInvoice.amount).toLocaleString()}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Payment Status Summary */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '10px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                <div>Paid to Date: <strong style={{ color: '#16a34a' }}>₹{Number(viewInvoice.paidAmount).toLocaleString()}</strong></div>
+                <div>Outstanding Balance: <strong style={{ color: Number(viewInvoice.balanceAmount) > 0 ? '#dc2626' : '#16a34a' }}>₹{Number(viewInvoice.balanceAmount).toLocaleString()}</strong></div>
+              </div>
+
+              {/* Transaction History */}
+              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '1rem', marginBottom: '1.5rem' }}>
+                <h4 style={{ fontSize: '0.85rem', fontWeight: 700, margin: '0 0 0.5rem', color: '#475569', textTransform: 'uppercase' }}>
+                  💳 Payment Audit History ({viewInvoice.transactions?.length || 0})
+                </h4>
+                {(!viewInvoice.transactions || viewInvoice.transactions.length === 0) ? (
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic', margin: 0 }}>No payment transactions completed yet.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    {viewInvoice.transactions.map((t) => (
+                      <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0.75rem', borderRadius: '6px', background: '#f0fdf4', border: '1px solid #bbf7d0', fontSize: '0.8rem' }}>
+                        <div>
+                          <span style={{ fontWeight: 700, fontFamily: 'monospace' }}>{t.transactionReference}</span>
+                          <span style={{ color: '#64748b', marginLeft: '8px' }}>{t.paymentMethod} &bull; {new Date(t.transactionTime).toLocaleString()}</span>
+                        </div>
+                        <div style={{ fontWeight: 800, color: '#16a34a' }}>
+                          +₹{Number(t.amountPaid).toLocaleString()}
                         </div>
                       </div>
-                      <div style={{ fontWeight: 800, color: '#10b981', alignSelf: 'center' }}>
-                        +₹{Number(t.amountPaid).toLocaleString()}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.5rem' }}>
-              <button className="btn btn-outline" onClick={() => setViewInvoice(null)}>
-                Close
-              </button>
+              {/* Actions */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => window.print()}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  🖨️ Print Receipt
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setViewInvoice(null)}
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  Close Receipt
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

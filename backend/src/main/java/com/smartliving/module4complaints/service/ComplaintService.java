@@ -203,6 +203,22 @@ public class ComplaintService {
         return toResponse(complaint);
     }
 
+    public void deleteComplaint(Long id) {
+        Complaint complaint = findOrThrow(id);
+        complaintRepository.delete(complaint);
+        log.info("Permanently deleted complaint #{}", id);
+    }
+
+    public long clearCompletedComplaints() {
+        List<Complaint> resolved = complaintRepository.findByStatusOrderByCreatedAtDesc(ComplaintStatus.RESOLVED);
+        List<Complaint> closed = complaintRepository.findByStatusOrderByCreatedAtDesc(ComplaintStatus.CLOSED);
+        long count = resolved.size() + closed.size();
+        complaintRepository.deleteAll(resolved);
+        complaintRepository.deleteAll(closed);
+        log.info("Cleared {} completed/closed maintenance complaints", count);
+        return count;
+    }
+
     // ─── Mapping helper ───────────────────────────────────────────────────────
 
     /**

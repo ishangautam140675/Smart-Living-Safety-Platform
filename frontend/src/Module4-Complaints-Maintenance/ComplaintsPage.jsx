@@ -362,22 +362,40 @@ export default function ComplaintsPage() {
           )}
 
           {/* Search & filter toolbar */}
-          <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap' }}>
-            <input
-              value={keyword}
-              onChange={e => setKeyword(e.target.value)}
-              placeholder="Search by title, description or resident…"
-              style={{ flex:1, minWidth:220, padding:'9px 14px', borderRadius:8, border:'1px solid #ced4da', fontSize:14 }}
-            />
-            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-              style={{ padding:'9px 14px', borderRadius:8, border:'1px solid #ced4da', fontSize:14 }}>
-              <option value="">All Statuses</option>
-              {ALL_STATUSES.map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
-            </select>
-            <button onClick={loadAdminData}
-              style={{ background:'#0d6efd',color:'#fff',border:'none',padding:'9px 20px',borderRadius:8,cursor:'pointer',fontWeight:600 }}>
-              🔍 Search
-            </button>
+          <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', justifyContent:'space-between', alignItems:'center' }}>
+            <div style={{ display:'flex', gap:12, flexWrap:'wrap', flex:1 }}>
+              <input
+                value={keyword}
+                onChange={e => setKeyword(e.target.value)}
+                placeholder="Search by title, description or resident…"
+                style={{ flex:1, minWidth:220, padding:'9px 14px', borderRadius:8, border:'1px solid #ced4da', fontSize:14 }}
+              />
+              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+                style={{ padding:'9px 14px', borderRadius:8, border:'1px solid #ced4da', fontSize:14 }}>
+                <option value="">All Statuses</option>
+                {ALL_STATUSES.map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
+              </select>
+              <button onClick={loadAdminData}
+                style={{ background:'#0d6efd',color:'#fff',border:'none',padding:'9px 20px',borderRadius:8,cursor:'pointer',fontWeight:600 }}>
+                🔍 Search
+              </button>
+            </div>
+            {canManage && (
+              <button
+                onClick={async () => {
+                  if (!window.confirm('Are you sure you want to permanently clear all completed/resolved and closed maintenance tasks?')) return;
+                  try {
+                    const res = await complaintService.clearCompletedComplaints();
+                    setSuccess(`Cleared ${res.count || 0} completed tasks permanently.`);
+                    await loadAdminData();
+                  } catch (e) {
+                    setError(e.message);
+                  }
+                }}
+                style={{ background:'#dc2626', color:'#fff', border:'none', padding:'9px 18px', borderRadius:8, cursor:'pointer', fontWeight:700, fontSize:13 }}>
+                🗑️ Clear Completed Tasks
+              </button>
+            )}
           </div>
 
           {/* Status-update panel (admin / staff only) */}
@@ -450,11 +468,27 @@ export default function ComplaintsPage() {
                       <td style={{ padding:'12px 14px', fontSize:12, color:'#888', whiteSpace:'nowrap' }}>{fmt(c.createdAt)}</td>
                       <td style={{ padding:'12px 14px' }}>
                         {canManage && (
-                          <button
-                            onClick={() => { setSelectedComplaint(c); setNewStatus(c.status); setResolutionNote(c.resolutionNote || ''); }}
-                            style={{ background:'#0d6efd',color:'#fff',border:'none',padding:'5px 12px',borderRadius:6,cursor:'pointer',fontSize:12,fontWeight:600 }}>
-                            Update
-                          </button>
+                          <div style={{ display:'flex', gap:6 }}>
+                            <button
+                              onClick={() => { setSelectedComplaint(c); setNewStatus(c.status); setResolutionNote(c.resolutionNote || ''); }}
+                              style={{ background:'#0d6efd',color:'#fff',border:'none',padding:'5px 10px',borderRadius:6,cursor:'pointer',fontSize:12,fontWeight:600 }}>
+                              Update
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!window.confirm(`Permanently delete complaint #${c.id}?`)) return;
+                                try {
+                                  await complaintService.deleteComplaint(c.id);
+                                  setSuccess(`Deleted complaint #${c.id}`);
+                                  await loadAdminData();
+                                } catch (e) {
+                                  setError(e.message);
+                                }
+                              }}
+                              style={{ background:'#fee2e2',color:'#dc2626',border:'1px solid #fecaca',padding:'5px 8px',borderRadius:6,cursor:'pointer',fontSize:12,fontWeight:700 }}>
+                              🗑️
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>

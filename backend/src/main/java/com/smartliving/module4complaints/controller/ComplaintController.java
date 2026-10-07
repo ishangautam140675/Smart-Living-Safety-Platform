@@ -125,4 +125,18 @@ public class ComplaintController {
 
         return ResponseEntity.ok(complaintService.updateStatus(id, request));
     }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    public ResponseEntity<Void> deleteComplaint(@PathVariable Long id) {
+        complaintService.deleteComplaint(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/clear-completed")
+    @PreAuthorize("hasAnyRole('ADMIN','STAFF')")
+    public ResponseEntity<java.util.Map<String, Object>> clearCompleted() {
+        long count = complaintService.clearCompletedComplaints();
+        return ResponseEntity.ok(java.util.Map.of("message", "Cleared completed tasks", "count", count));
+    }
 }
