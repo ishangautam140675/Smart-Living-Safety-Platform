@@ -152,6 +152,13 @@ public class PaymentService {
     public void deleteInvoice(String invoiceNumber) {
         Invoice invoice = invoiceRepository.findByInvoiceNumber(invoiceNumber.trim().toUpperCase())
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with number: " + invoiceNumber));
+
+        List<PaymentTransaction> transactions = transactionRepository.findByInvoiceIdOrderByTransactionTimeDesc(invoice.getId());
+        if (!transactions.isEmpty()) {
+            transactionRepository.deleteAll(transactions);
+            log.info("Deleted {} transaction record(s) linked to invoice [{}]", transactions.size(), invoiceNumber);
+        }
+
         invoiceRepository.delete(invoice);
         log.info("Invoice [{}] permanently deleted.", invoiceNumber);
     }
@@ -159,10 +166,20 @@ public class PaymentService {
     public long clearPaidInvoices() {
         List<Invoice> paid = invoiceRepository.findByStatusOrderByDueDateAsc(PaymentStatus.PAID);
         List<Invoice> cancelled = invoiceRepository.findByStatusOrderByDueDateAsc(PaymentStatus.CANCELLED);
-        long count = paid.size() + cancelled.size();
-        invoiceRepository.deleteAll(paid);
-        invoiceRepository.deleteAll(cancelled);
-        log.info("Cleared {} paid/cancelled invoices from the ledger.", count);
+        List<Invoice> toDelete = new java.util.ArrayList<>();
+        toDelete.addAll(paid);
+        toDelete.addAll(cancelled);
+
+        long count = toDelete.size();
+        for (Invoice inv : toDelete) {
+            List<PaymentTransaction> txs = transactionRepository.findByInvoiceIdOrderByTransactionTimeDesc(inv.getId());
+            if (!txs.isEmpty()) {
+                transactionRepository.deleteAll(txs);
+            }
+        }
+
+        invoiceRepository.deleteAll(toDelete);
+        log.info("Cleared {} paid/cancelled invoices and their transaction records from the ledger.", count);
         return count;
     }
 
