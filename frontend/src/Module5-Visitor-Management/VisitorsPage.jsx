@@ -76,6 +76,14 @@ export default function VisitorsPage() {
     loadData();
   }, [loadData]);
 
+  // Auto-refresh passes every 20 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData();
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [loadData]);
+
   // Handle Quick Scan / Lookup
   const handleScanLookup = async (e) => {
     e?.preventDefault();
@@ -234,13 +242,23 @@ export default function VisitorsPage() {
           </p>
         </div>
 
-        <button
-          className="btn btn-primary"
-          onClick={() => setShowModal(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-        >
-          <span>➕</span> New Visitor Pass
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button
+            className="btn btn-outline"
+            onClick={() => loadData()}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            title="Refresh visitor passes"
+          >
+            🔄 Refresh
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <span>➕</span> New Visitor Pass
+          </button>
+        </div>
       </div>
 
       {/* Alerts */}

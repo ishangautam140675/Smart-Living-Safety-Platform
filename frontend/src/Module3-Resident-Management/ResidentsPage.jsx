@@ -59,8 +59,16 @@ export default function ResidentsPage() {
     loadData();
   }, [searchQuery, statusFilter]);
 
-  const loadData = async () => {
-    setLoading(true);
+  // Auto-refresh every 20 seconds so changes by resident or admin sync seamlessly
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [searchQuery, statusFilter]);
+
+  const loadData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError('');
     try {
       // If resident, fetch own profile
@@ -212,15 +220,25 @@ export default function ResidentsPage() {
           </p>
         </div>
 
-        {isAdmin && (
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <button
-            onClick={() => setShowOnboard(!showOnboard)}
-            className="btn btn-primary"
-            style={{ fontWeight: 600 }}
+            onClick={() => loadData(true)}
+            className="btn btn-outline"
+            style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            title="Refresh latest data from database"
           >
-            {showOnboard ? '✕ Close Form' : '＋ Onboard New Resident'}
+            🔄 Refresh
           </button>
-        )}
+          {isAdmin && (
+            <button
+              onClick={() => setShowOnboard(!showOnboard)}
+              className="btn btn-primary"
+              style={{ fontWeight: 600 }}
+            >
+              {showOnboard ? '✕ Close Form' : '＋ Onboard New Resident'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Messages */}

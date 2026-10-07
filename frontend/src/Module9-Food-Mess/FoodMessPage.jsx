@@ -71,6 +71,14 @@ export default function FoodMessPage() {
     loadData();
   }, [loadData]);
 
+  // Periodic background refresh every 20 seconds for opt-outs and menu changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData();
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [loadData]);
+
   // Handle Save Menu (Admin/Staff)
   const handleSaveMenu = async (e) => {
     e.preventDefault();
@@ -229,6 +237,14 @@ export default function FoodMessPage() {
 
           {isAdminOrStaff && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <button
+                className="btn btn-outline"
+                onClick={() => loadData()}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                title="Refresh menu and opt-outs"
+              >
+                🔄 Refresh
+              </button>
               <button
                 className="btn btn-primary"
                 onClick={() => {

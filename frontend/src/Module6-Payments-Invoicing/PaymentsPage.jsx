@@ -45,9 +45,9 @@ export default function PaymentsPage() {
   // Invoice Receipt / Detail Modal
   const [viewInvoice, setViewInvoice] = useState(null);
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (showLoading = true) => {
     if (!user) return;
-    setLoading(true);
+    if (showLoading) setLoading(true);
     setError('');
     try {
       if (isResident) {
@@ -64,12 +64,20 @@ export default function PaymentsPage() {
     } catch (err) {
       setError(err.message || 'Failed to load invoices');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [user, isResident, isAdmin, keyword, statusFilter]);
 
   useEffect(() => {
-    loadData();
+    loadData(true);
+  }, [loadData]);
+
+  // Periodic background sync so payments made by residents reflect on admin screen
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadData(false);
+    }, 20000);
+    return () => clearInterval(interval);
   }, [loadData]);
 
   useEffect(() => {
@@ -230,25 +238,35 @@ export default function PaymentsPage() {
           </p>
         </div>
 
-        {isAdmin && (
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <button
-              className="btn btn-primary"
-              onClick={() => setShowCreateModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              <span>➕</span> Generate Invoice
-            </button>
-            <button
-              className="btn btn-outline"
-              onClick={handleClearPaid}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: '#ef4444', color: '#ef4444' }}
-              title="Remove all PAID and CANCELLED invoices from the ledger"
-            >
-              🧹 Clear Paid
-            </button>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            className="btn btn-outline"
+            onClick={() => loadData(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            title="Refresh payments and invoices"
+          >
+            🔄 Refresh
+          </button>
+          {isAdmin && (
+            <>
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowCreateModal(true)}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                <span>➕</span> Generate Invoice
+              </button>
+              <button
+                className="btn btn-outline"
+                onClick={handleClearPaid}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: '#ef4444', color: '#ef4444' }}
+                title="Remove all PAID and CANCELLED invoices from the ledger"
+              >
+                🧹 Clear Paid
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Alerts */}

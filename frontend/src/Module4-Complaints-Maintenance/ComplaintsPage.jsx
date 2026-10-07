@@ -158,6 +158,15 @@ export default function ComplaintsPage() {
     if (isResident) loadMyComplaints();
   }, [canViewAll, isResident, loadAdminData, loadMyComplaints]);
 
+  // Periodic background sync for complaints
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (canViewAll) loadAdminData();
+      if (isResident) loadMyComplaints();
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [canViewAll, isResident, loadAdminData, loadMyComplaints]);
+
   // ── Submit complaint (resident) ───────────────────────────────────────────────
 
   async function handleSubmit(e) {
