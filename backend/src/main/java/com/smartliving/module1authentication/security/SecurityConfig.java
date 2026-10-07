@@ -56,8 +56,11 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/h2-console/**"
                         ).permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/rooms/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/properties/**").permitAll()
                         .anyRequest().authenticated()
                 );
+
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
