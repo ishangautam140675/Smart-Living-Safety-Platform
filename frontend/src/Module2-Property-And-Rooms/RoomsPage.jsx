@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../Module1-Authentication/AuthContext';
 import { roomService } from './roomService';
 import { propertyService } from './propertyService';
+import { generateRoomImages, clearRoomImageCache, isGeminiConfigured } from '../utils/roomImageGenerator';
+
 
 // ─── Room photo gallery data (curated Unsplash images per room type) ──────────
 const ROOM_PHOTOS = {
@@ -88,6 +90,50 @@ export default function RoomsPage() {
   const [bookingBedId, setBookingBedId] = useState('');
   const [bookingMsg, setBookingMsg] = useState('');
 
+  // ── AI Image Generation State ──────────────────────────────────────────────
+  // Map: roomKey → array of { viewType, label, dataUri }
+  const [aiImages, setAiImages] = useState({});
+  // Which room is currently having images generated
+  const [generatingForRoom, setGeneratingForRoom] = useState(null);
+  // 0..4 — how many views completed
+  const [genProgress, setGenProgress] = useState(0);
+  const [genError, setGenError] = useState('');
+  const geminiReady = isGeminiConfigured();
+
+  /** Build a stable cache key for a room */
+  const roomCacheKey = (room) => `${room.roomNumber}_${room.roomType}_${room.baseRent}`;
+
+  /** Trigger AI image generation for a single room */
+  const handleGenerateImages = useCallback(async (room) => {
+    if (!geminiReady) {
+      setGenError('⚠️ Gemini API key not set. Add VITE_GEMINI_API_KEY to frontend/.env and restart the dev server.');
+      return;
+    }
+    const key = roomCacheKey(room);
+    setGeneratingForRoom(key);
+    setGenProgress(0);
+    setGenError('');
+    try {
+      const imgs = await generateRoomImages(room, (step) => setGenProgress(step));
+      setAiImages((prev) => ({ ...prev, [key]: imgs }));
+      setGeneratingForRoom(null);
+    } catch (err) {
+      setGenError(`AI generation failed: ${err.message}`);
+      setGeneratingForRoom(null);
+    }
+  }, [geminiReady]);
+
+  /** Clear cached AI images and regenerate */
+  const handleRegenerateImages = useCallback(async (room) => {
+    clearRoomImageCache(room);
+    setAiImages((prev) => {
+      const copy = { ...prev };
+      delete copy[roomCacheKey(room)];
+      return copy;
+    });
+    await handleGenerateImages(room);
+  }, [handleGenerateImages]);
+
   useEffect(() => {
     loadData();
   }, [statusFilter, typeFilter]);
@@ -133,20 +179,31 @@ export default function RoomsPage() {
     setError('');
     setSuccessMsg('');
     try {
-      await roomService.createRoom({
+      const newRoom = await roomService.createRoom({
         floorId: Number(selectedFloorId),
         roomNumber,
         roomType,
         baseRent: Number(baseRent),
         description,
       });
-      setSuccessMsg(`Room ${roomNumber} created successfully with automatic bed allocation!`);
+      setSuccessMsg(`Room ${roomNumber} created! ${geminiReady ? '🤖 Generating AI photos — please wait...' : '✓ Add VITE_GEMINI_API_KEY to enable AI photo generation.'}`);
       setShowAddRoom(false);
       setRoomNumber('');
       setDescription('');
       await loadData();
+
+      // Auto-generate AI images for the newly created room
+      if (geminiReady && newRoom) {
+        handleGenerateImages({
+          roomNumber: newRoom.roomNumber || roomNumber,
+          roomType: newRoom.roomType || roomType,
+          baseRent: newRoom.baseRent || Number(baseRent),
+          description: newRoom.description || description,
+        });
+      }
     } catch (err) {
       setError(err.message || 'Failed to create room');
+
     } finally {
       setCreatingRoom(false);
     }
@@ -167,10 +224,27 @@ export default function RoomsPage() {
     }
   };
 
+
+  /**
+   * Returns photos for a room:
+   * - First checks if AI-generated images exist in state
+   * - Falls back to Unsplash curated photos by room type
+   * Returns array of { src, label } objects
+   */
   const getPhotosForRoom = (room) => {
-    const photos = ROOM_PHOTOS[room.roomType] || [FALLBACK_PHOTO];
-    return photos;
+    const key = roomCacheKey(room);
+    const aiImgs = aiImages[key];
+    if (aiImgs && aiImgs.length > 0) {
+      // AI images available — use them
+      return aiImgs
+        .filter((img) => img.dataUri) // only ones that successfully generated
+        .map((img) => ({ src: img.dataUri, label: img.label, isAI: true }));
+    }
+    // Fallback to Unsplash
+    const urls = ROOM_PHOTOS[room.roomType] || [FALLBACK_PHOTO];
+    return urls.map((src) => ({ src, label: '📷 Room Photo', isAI: false }));
   };
+
 
   const openGallery = (room, idx = 0) => {
     setGalleryRoom(room);
@@ -345,6 +419,9 @@ export default function RoomsPage() {
             const statusStyle = getStatusStyles(room.status);
             const freeBeds = room.beds?.filter((b) => b.status === 'AVAILABLE') || [];
             const canBook = isResident && freeBeds.length > 0;
+            const cardKey = roomCacheKey(room);
+            const isGenThisCard = generatingForRoom === cardKey;
+            const hasAI = aiImages[cardKey]?.some((img) => img.dataUri);
 
             return (
               <div
@@ -354,49 +431,66 @@ export default function RoomsPage() {
                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 28px rgba(0,0,0,0.12)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = ''; }}
               >
-                {/* ── Photo Carousel ── */}
-                <div style={{ position: 'relative', height: '200px', overflow: 'hidden', background: '#f1f5f9', cursor: 'pointer' }} onClick={() => openGallery(room, 0)}>
-                  <img
-                    src={photos[0]}
-                    alt={`Room ${room.roomNumber}`}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
-                    onError={(e) => { e.target.src = FALLBACK_PHOTO; }}
-                    onMouseEnter={(e) => { e.target.style.transform = 'scale(1.04)'; }}
-                    onMouseLeave={(e) => { e.target.style.transform = 'scale(1)'; }}
-                  />
-
-                  {/* Photo count badge */}
-                  <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '999px', backdropFilter: 'blur(4px)' }}>
-                    📷 {photos.length} Photos
-                  </div>
-
-                  {/* Status ribbon */}
-                  <div style={{ position: 'absolute', top: '10px', left: '0', background: statusStyle.color, color: '#fff', fontSize: '0.72rem', fontWeight: 800, padding: '0.2rem 0.75rem 0.2rem 0.6rem', borderRadius: '0 999px 999px 0', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {room.status === 'AVAILABLE' ? '✓ Available' : room.status === 'OCCUPIED' ? '● Fully Booked' : '⚙ Maintenance'}
-                  </div>
+                {/* ── Photo / AI Progress Area ── */}
+                <div
+                  style={{ position: 'relative', height: '210px', overflow: 'hidden', background: isGenThisCard ? '#0f172a' : '#f1f5f9', cursor: isGenThisCard ? 'default' : 'pointer' }}
+                  onClick={() => !isGenThisCard && openGallery(room, 0)}
+                >
+                  {isGenThisCard ? (
+                    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.85rem', padding: '1.5rem' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: '50%', border: '4px solid #1e293b', borderTopColor: '#6366f1', animation: 'spin 0.9s linear infinite' }} />
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ color: '#f8fafc', fontWeight: 700, fontSize: '0.88rem', marginBottom: '0.3rem' }}>🤖 AI Generating Room Photos…</div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
+                          {['Starting…', '✓ Bedroom done — generating washroom…', '✓ Washroom done — generating TV corner…', '✓ TV corner done — generating side view…', '✓ All 4 photos ready!'][genProgress]}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        {['🛏️', '🚿', '📺', '🪟'].map((icon, i) => (
+                          <div key={i} style={{ width: '28px', height: '28px', borderRadius: '50%', background: genProgress > i ? '#6366f1' : '#1e293b', border: genProgress === i + 1 ? '2px solid #818cf8' : '2px solid transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', transition: 'all 0.3s' }}>
+                            {genProgress > i ? '✓' : icon}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <img
+                        src={photos[0]?.src || FALLBACK_PHOTO}
+                        alt={`Room ${room.roomNumber}`}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
+                        onError={(e) => { e.target.src = FALLBACK_PHOTO; }}
+                        onMouseEnter={(e) => { e.target.style.transform = 'scale(1.04)'; }}
+                        onMouseLeave={(e) => { e.target.style.transform = 'scale(1)'; }}
+                      />
+                      {hasAI && (
+                        <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: '0.68rem', fontWeight: 800, padding: '0.2rem 0.55rem', borderRadius: '999px', boxShadow: '0 2px 8px rgba(99,102,241,0.5)', letterSpacing: '0.04em' }}>
+                          ✨ AI Generated
+                        </div>
+                      )}
+                      <div style={{ position: 'absolute', bottom: '8px', right: '8px', background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.55rem', borderRadius: '999px', backdropFilter: 'blur(4px)' }}>
+                        📷 {photos.length} Photos
+                      </div>
+                      <div style={{ position: 'absolute', top: '10px', left: '0', background: statusStyle.color, color: '#fff', fontSize: '0.72rem', fontWeight: 800, padding: '0.2rem 0.75rem 0.2rem 0.6rem', borderRadius: '0 999px 999px 0', boxShadow: '0 2px 6px rgba(0,0,0,0.2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {room.status === 'AVAILABLE' ? '✓ Available' : room.status === 'OCCUPIED' ? '● Fully Booked' : '⚙ Maintenance'}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {/* ── Room Details ── */}
                 <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                  {/* Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.15rem' }}>
-                        Room #{room.roomNumber}
-                      </h3>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                        🏢 {room.buildingName || 'Main Block'} &bull; Floor {room.floorNumber}
-                      </div>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.15rem' }}>Room #{room.roomNumber}</h3>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>🏢 {room.buildingName || 'Main Block'} &bull; Floor {room.floorNumber}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#2563eb' }}>
-                        ₹{room.baseRent?.toLocaleString()}
-                      </div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#2563eb' }}>₹{room.baseRent?.toLocaleString()}</div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>per month</div>
                     </div>
                   </div>
 
-                  {/* Type badge */}
                   <div>
                     <span style={{ background: '#eff6ff', color: '#2563eb', fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '999px', border: '1px solid #bfdbfe' }}>
                       🛏️ {ROOM_TYPE_LABEL[room.roomType] || room.roomType}
@@ -406,32 +500,18 @@ export default function RoomsPage() {
                     </span>
                   </div>
 
-                  {/* Description */}
-                  {room.description && (
-                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                      {room.description}
-                    </p>
-                  )}
+                  {room.description && <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{room.description}</p>}
 
-                  {/* Amenities */}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                     {amenities.slice(0, 5).map((a, i) => (
-                      <span key={i} style={{ fontSize: '0.72rem', background: 'var(--bg-main)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.2rem 0.5rem', color: 'var(--text-muted)', fontWeight: 500 }}>
-                        {a}
-                      </span>
+                      <span key={i} style={{ fontSize: '0.72rem', background: 'var(--bg-main)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.2rem 0.5rem', color: 'var(--text-muted)', fontWeight: 500 }}>{a}</span>
                     ))}
-                    {amenities.length > 5 && (
-                      <span style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 600, padding: '0.2rem 0.5rem' }}>
-                        +{amenities.length - 5} more
-                      </span>
-                    )}
+                    {amenities.length > 5 && <span style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 600, padding: '0.2rem 0.5rem' }}>+{amenities.length - 5} more</span>}
                   </div>
 
-                  {/* Bed allocation bar */}
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
-                      <span>BED OCCUPANCY</span>
-                      <span>{room.occupiedBeds}/{room.capacity}</span>
+                      <span>BED OCCUPANCY</span><span>{room.occupiedBeds}/{room.capacity}</span>
                     </div>
                     <div style={{ background: 'var(--border)', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
                       <div style={{ background: room.occupiedBeds === room.capacity ? '#ef4444' : '#10b981', width: `${Math.min(100, (room.occupiedBeds / room.capacity) * 100)}%`, height: '100%', borderRadius: '999px', transition: 'width 0.4s ease' }} />
@@ -439,49 +519,56 @@ export default function RoomsPage() {
                   </div>
 
                   {/* Action buttons */}
-                  <div style={{ display: 'flex', gap: '0.6rem', marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)' }}>
-                    {/* View Photos */}
-                    <button
-                      onClick={() => openGallery(room, 0)}
-                      className="btn btn-outline"
-                      style={{ flex: 1, fontSize: '0.82rem', padding: '0.55rem' }}
-                    >
-                      📷 View Photos
-                    </button>
-
-                    {/* Book Room (residents only, or all if available) */}
-                    {(canBook || (!isAdmin && freeBeds.length > 0)) && (
-                      <button
-                        onClick={() => openBooking(room)}
-                        className="btn btn-primary"
-                        style={{ flex: 1, fontSize: '0.82rem', padding: '0.55rem' }}
-                      >
-                        📋 Book Room
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)' }}>
+                    {/* Row 1: View / Book */}
+                    <div style={{ display: 'flex', gap: '0.6rem' }}>
+                      <button onClick={() => openGallery(room, 0)} className="btn btn-outline" style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }} disabled={isGenThisCard}>
+                        📷 View Photos
                       </button>
+                      {(canBook || (!isAdmin && freeBeds.length > 0)) && (
+                        <button onClick={() => openBooking(room)} className="btn btn-primary" style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }}>
+                          📋 Book Room
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Row 2: Admin AI + Bed controls */}
+                    {isAdmin && (
+                      <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <button
+                          onClick={() => hasAI ? handleRegenerateImages(room) : handleGenerateImages(room)}
+                          disabled={isGenThisCard || !geminiReady}
+                          title={!geminiReady ? 'Add VITE_GEMINI_API_KEY to frontend/.env then restart Vite' : hasAI ? 'Generate a fresh new set of unique AI room photos' : 'Generate 4 unique AI room photos (bedroom, washroom, TV, side view)'}
+                          style={{ fontSize: '0.78rem', padding: '0.38rem 0.7rem', border: `1px solid ${hasAI ? '#6ee7b7' : '#818cf8'}`, borderRadius: '8px', background: !geminiReady ? '#f1f5f9' : hasAI ? 'linear-gradient(135deg,#f0fdf4,#dcfce7)' : 'linear-gradient(135deg,#eef2ff,#e0e7ff)', color: !geminiReady ? '#94a3b8' : hasAI ? '#047857' : '#4f46e5', fontWeight: 700, cursor: (!geminiReady || isGenThisCard) ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
+                        >
+                          {isGenThisCard ? `🤖 ${genProgress}/4 done…` : hasAI ? '🔄 Regenerate AI' : (geminiReady ? '✨ AI Photos' : '🔑 API Key')}
+                        </button>
+                        {room.beds?.map((bed) => {
+                          const isFree = bed.status === 'AVAILABLE';
+                          const isOcc = bed.status === 'OCCUPIED';
+                          return (
+                            <button key={bed.id}
+                              onClick={() => handleUpdateBed(room.id, bed.id, isFree ? 'OCCUPIED' : isOcc ? 'UNDER_MAINTENANCE' : 'AVAILABLE')}
+                              title={`Bed ${bed.bedNumber}: ${bed.status} — click to cycle`}
+                              style={{ fontSize: '0.68rem', padding: '0.2rem 0.42rem', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, background: isFree ? '#dcfce7' : isOcc ? '#dbeafe' : '#fef3c7', color: isFree ? '#166534' : isOcc ? '#1e40af' : '#92400e' }}>
+                              B{bed.bedNumber} {isFree ? '●' : isOcc ? '■' : '⚙'}
+                            </button>
+                          );
+                        })}
+                      </div>
                     )}
 
-                    {/* Admin bed controls */}
-                    {isStaffOrAdmin && room.beds?.length > 0 && (
+                    {/* Row 2 (staff non-admin): bed controls only */}
+                    {!isAdmin && isStaffOrAdmin && room.beds?.length > 0 && (
                       <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
                         {room.beds.map((bed) => {
                           const isFree = bed.status === 'AVAILABLE';
                           const isOcc = bed.status === 'OCCUPIED';
                           return (
-                            <button
-                              key={bed.id}
+                            <button key={bed.id}
                               onClick={() => handleUpdateBed(room.id, bed.id, isFree ? 'OCCUPIED' : isOcc ? 'UNDER_MAINTENANCE' : 'AVAILABLE')}
-                              title={`Bed ${bed.bedNumber}: ${bed.status} — click to cycle`}
-                              style={{
-                                fontSize: '0.7rem',
-                                padding: '0.2rem 0.45rem',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontWeight: 700,
-                                background: isFree ? '#dcfce7' : isOcc ? '#dbeafe' : '#fef3c7',
-                                color: isFree ? '#166534' : isOcc ? '#1e40af' : '#92400e',
-                              }}
-                            >
+                              title={`Bed ${bed.bedNumber}: ${bed.status}`}
+                              style={{ fontSize: '0.7rem', padding: '0.2rem 0.45rem', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, background: isFree ? '#dcfce7' : isOcc ? '#dbeafe' : '#fef3c7', color: isFree ? '#166534' : isOcc ? '#1e40af' : '#92400e' }}>
                               B{bed.bedNumber} {isFree ? '●' : isOcc ? '■' : '⚙'}
                             </button>
                           );
@@ -496,25 +583,41 @@ export default function RoomsPage() {
         </div>
       )}
 
+      {/* ── Global AI gen error ──────────────────────────────────────── */}
+      {genError && (
+        <div style={{ position: 'fixed', bottom: '1.5rem', left: '50%', transform: 'translateX(-50%)', background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '0.75rem 1.25rem', borderRadius: '10px', fontSize: '0.85rem', zIndex: 1100, boxShadow: '0 4px 14px rgba(0,0,0,0.12)', maxWidth: '480px', textAlign: 'center' }}>
+          {genError}
+          <button onClick={() => setGenError('')} style={{ marginLeft: '1rem', border: 'none', background: 'transparent', cursor: 'pointer', color: '#991b1b', fontWeight: 700 }}>✕</button>
+        </div>
+      )}
+
       {/* ── Photo Gallery Lightbox ────────────────────────────────────── */}
-      {galleryRoom && (
+      {galleryRoom && (() => {
+        const galleryPhotos = getPhotosForRoom(galleryRoom);
+        const currentPhoto = galleryPhotos[galleryIndex] || galleryPhotos[0];
+        return (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
           onClick={closeGallery}
         >
           <div
-            style={{ position: 'relative', width: '100%', maxWidth: '860px', background: '#0f172a', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}
+            style={{ position: 'relative', width: '100%', maxWidth: '880px', background: '#0f172a', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 24px 60px rgba(0,0,0,0.7)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close */}
-            <button onClick={closeGallery} style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', fontSize: '1.2rem', cursor: 'pointer' }}>
-              ✕
-            </button>
+            <button onClick={closeGallery} style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 10, background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', fontSize: '1.2rem', cursor: 'pointer' }}>✕</button>
+
+            {/* AI Generated badge in lightbox */}
+            {currentPhoto?.isAI && (
+              <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 10, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', color: '#fff', fontSize: '0.75rem', fontWeight: 800, padding: '0.3rem 0.75rem', borderRadius: '999px', boxShadow: '0 2px 8px rgba(99,102,241,0.5)' }}>
+                ✨ AI Generated Photo
+              </div>
+            )}
 
             {/* Main Photo */}
             <img
-              src={getPhotosForRoom(galleryRoom)[galleryIndex] || FALLBACK_PHOTO}
-              alt={`Room ${galleryRoom.roomNumber} photo ${galleryIndex + 1}`}
+              src={currentPhoto?.src || FALLBACK_PHOTO}
+              alt={`Room ${galleryRoom.roomNumber} — ${currentPhoto?.label || 'Photo'}`}
               style={{ width: '100%', height: '460px', objectFit: 'cover', display: 'block' }}
               onError={(e) => { e.target.src = FALLBACK_PHOTO; }}
             />
@@ -523,33 +626,39 @@ export default function RoomsPage() {
             <div style={{ padding: '1.25rem', background: '#0f172a', color: '#f8fafc' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                 <div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>Room #{galleryRoom.roomNumber} — {ROOM_TYPE_LABEL[galleryRoom.roomType]}</h3>
-                  <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{galleryRoom.buildingName} • Floor {galleryRoom.floorNumber} • ₹{galleryRoom.baseRent?.toLocaleString()}/month</p>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Room #{galleryRoom.roomNumber} — {ROOM_TYPE_LABEL[galleryRoom.roomType]}</h3>
+                  <p style={{ color: '#94a3b8', fontSize: '0.82rem', marginTop: '0.15rem' }}>
+                    {galleryRoom.buildingName} &bull; Floor {galleryRoom.floorNumber} &bull; ₹{galleryRoom.baseRent?.toLocaleString()}/month
+                    {currentPhoto?.label && <span style={{ marginLeft: '0.75rem', color: '#818cf8', fontWeight: 600 }}>• {currentPhoto.label}</span>}
+                  </p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                   <button
-                    onClick={() => setGalleryIndex((i) => (i - 1 + getPhotosForRoom(galleryRoom).length) % getPhotosForRoom(galleryRoom).length)}
+                    onClick={() => setGalleryIndex((i) => (i - 1 + galleryPhotos.length) % galleryPhotos.length)}
                     style={{ background: '#1e293b', border: 'none', color: '#fff', borderRadius: '8px', padding: '0.5rem 0.9rem', cursor: 'pointer', fontSize: '1.1rem' }}
                   >‹</button>
-                  <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{galleryIndex + 1} / {getPhotosForRoom(galleryRoom).length}</span>
+                  <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>{galleryIndex + 1} / {galleryPhotos.length}</span>
                   <button
-                    onClick={() => setGalleryIndex((i) => (i + 1) % getPhotosForRoom(galleryRoom).length)}
+                    onClick={() => setGalleryIndex((i) => (i + 1) % galleryPhotos.length)}
                     style={{ background: '#1e293b', border: 'none', color: '#fff', borderRadius: '8px', padding: '0.5rem 0.9rem', cursor: 'pointer', fontSize: '1.1rem' }}
                   >›</button>
                 </div>
               </div>
 
               {/* Thumbnails */}
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                {getPhotosForRoom(galleryRoom).map((photo, i) => (
-                  <img
-                    key={i}
-                    src={photo}
-                    alt={`thumb-${i}`}
-                    onClick={() => setGalleryIndex(i)}
-                    onError={(e) => { e.target.src = FALLBACK_PHOTO; }}
-                    style={{ width: '72px', height: '52px', objectFit: 'cover', borderRadius: '6px', cursor: 'pointer', border: i === galleryIndex ? '2px solid #3b82f6' : '2px solid transparent', opacity: i === galleryIndex ? 1 : 0.65, transition: 'all 0.15s' }}
-                  />
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {galleryPhotos.map((photo, i) => (
+                  <div key={i} style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setGalleryIndex(i)}>
+                    <img
+                      src={photo.src}
+                      alt={photo.label}
+                      onError={(e) => { e.target.src = FALLBACK_PHOTO; }}
+                      style={{ width: '72px', height: '52px', objectFit: 'cover', borderRadius: '6px', border: i === galleryIndex ? '2px solid #6366f1' : '2px solid transparent', opacity: i === galleryIndex ? 1 : 0.6, transition: 'all 0.15s', display: 'block' }}
+                    />
+                    <div style={{ position: 'absolute', bottom: '2px', left: '2px', right: '2px', background: 'rgba(0,0,0,0.55)', color: '#fff', fontSize: '0.55rem', fontWeight: 700, textAlign: 'center', borderRadius: '0 0 4px 4px', padding: '1px 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {photo.label?.replace(/^[^\s]+ /, '')}
+                    </div>
+                  </div>
                 ))}
               </div>
 
@@ -559,10 +668,24 @@ export default function RoomsPage() {
                   <span key={i} style={{ background: '#1e293b', color: '#cbd5e1', fontSize: '0.75rem', padding: '0.2rem 0.6rem', borderRadius: '6px', border: '1px solid #334155' }}>{a}</span>
                 ))}
               </div>
+
+              {/* Admin: regenerate from lightbox */}
+              {isAdmin && (
+                <div style={{ marginTop: '0.85rem', display: 'flex', gap: '0.65rem' }}>
+                  <button
+                    onClick={() => { closeGallery(); setTimeout(() => handleGenerateImages(galleryRoom), 100); }}
+                    disabled={!geminiReady || Boolean(generatingForRoom)}
+                    style={{ fontSize: '0.78rem', padding: '0.4rem 0.85rem', background: geminiReady ? 'linear-gradient(135deg,#eef2ff,#e0e7ff)' : '#1e293b', border: `1px solid ${geminiReady ? '#818cf8' : '#334155'}`, borderRadius: '8px', color: geminiReady ? '#4f46e5' : '#475569', fontWeight: 700, cursor: geminiReady ? 'pointer' : 'not-allowed' }}
+                  >
+                    {getPhotosForRoom(galleryRoom).some((p) => p.isAI) ? '🔄 Regenerate AI Photos' : '✨ Generate AI Photos'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {/* ── Book Room Modal ───────────────────────────────────────────── */}
       {bookingRoom && (
