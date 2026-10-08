@@ -7,6 +7,4 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
-        value: mysql
-      - key: JPA_DDL_AUTO
-        value: update
+        value: h2

@@ -7,7 +7,15 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SmartLivingApplication {
 
     public static void main(String[] args) {
-        sanitizeDatabaseEnvironment();
+        String profile = System.getenv("SPRING_PROFILES_ACTIVE");
+        if (profile == null) {
+            profile = System.getProperty("spring.profiles.active", "h2");
+        }
+
+        if (profile.contains("mysql")) {
+            sanitizeDatabaseEnvironment();
+        }
+
         SpringApplication.run(SmartLivingApplication.class, args);
     }
 
@@ -20,7 +28,6 @@ public class SmartLivingApplication {
         if (dbUrl != null && !dbUrl.trim().isEmpty()) {
             String s = dbUrl.trim();
 
-            // Strip wrapping quotes
             if (s.startsWith("\"") && s.endsWith("\"") && s.length() > 1) {
                 s = s.substring(1, s.length() - 1).trim();
             }
@@ -28,7 +35,6 @@ public class SmartLivingApplication {
                 s = s.substring(1, s.length() - 1).trim();
             }
 
-            // Ensure protocol starts with jdbc:mysql://
             if (!s.startsWith("jdbc:mysql://") && !s.startsWith("mysql://")) {
                 s = "jdbc:mysql://" + s;
             }
@@ -36,7 +42,6 @@ public class SmartLivingApplication {
                 s = "jdbc:" + s;
             }
 
-            // Clean multiple slashes after jdbc:mysql://
             int protocolEnd = s.indexOf("://") + 3;
             if (protocolEnd > 2 && protocolEnd < s.length()) {
                 String proto = s.substring(0, protocolEnd);
@@ -45,11 +50,9 @@ public class SmartLivingApplication {
                 s = proto + rest;
             }
 
-            // Clean duplicate question marks & ampersands
             s = s.replaceAll("\\?+", "?");
             s = s.replaceAll("&+", "&");
 
-            // Extract credentials if embedded in URL (e.g. jdbc:mysql://user:pass@host:4000/db)
             if (s.contains("@")) {
                 int atIdx = s.indexOf("@");
                 int schemeEnd = s.indexOf("://") + 3;
@@ -73,7 +76,6 @@ public class SmartLivingApplication {
                 }
             }
 
-            // Ensure SSL and timezone parameters if not specified
             if (!s.contains("serverTimezone")) {
                 s += (s.contains("?") ? "&" : "?") + "serverTimezone=UTC";
             }
