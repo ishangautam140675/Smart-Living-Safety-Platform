@@ -64,8 +64,15 @@ export const authService = {
       },
     });
 
+    if (response.status === 401) {
+      this.logout();
+      throw new Error('Session expired');
+    }
+    if (!response.ok) {
+      throw new Error('Backend unavailable, please wait...');
+    }
     const result = await response.json();
-    if (!response.ok || !result.success) {
+    if (!result.success) {
       this.logout();
       throw new Error(result.message || 'Session expired');
     }
