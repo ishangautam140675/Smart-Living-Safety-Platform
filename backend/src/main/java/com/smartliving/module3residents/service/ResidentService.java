@@ -294,4 +294,13 @@ public class ResidentService {
         }
         roomRepository.save(room);
     }
+
+    public void deleteResident(Long residentId) {
+        Resident resident = residentRepository.findById(residentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Resident", "id", residentId));
+        if (resident.getStatus() != ResidentStatus.CHECKED_OUT) {
+            throw new AppException("Only checked-out residents can be deleted");
+        }
+        residentRepository.delete(resident);
+    }
 }

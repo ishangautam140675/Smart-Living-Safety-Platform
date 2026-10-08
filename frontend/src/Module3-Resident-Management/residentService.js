@@ -100,4 +100,16 @@ export const residentService = {
     }
     return result.data;
   },
+
+  async deleteResident(id) {
+    const response = await fetch(`${API_BASE_URL}/api/residents/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Delete failed');
+    }
+    return result.data;
+  },
 };

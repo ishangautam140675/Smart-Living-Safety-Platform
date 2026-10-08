@@ -148,6 +148,20 @@ export default function EmergencyPage() {
     }
   };
 
+  // Delete Alert
+  const handleDeleteAlert = async (alertCode) => {
+    if (!window.confirm(`Are you sure you want to permanently delete alert ${alertCode}?`)) return;
+    setError('');
+    setSuccessMsg('');
+    try {
+      await emergencyService.deleteAlert(alertCode);
+      setSuccessMsg(`Alert ${alertCode} deleted successfully.`);
+      loadData();
+    } catch (err) {
+      setError(err.message || 'Failed to delete alert');
+    }
+  };
+
   const getSeverityBadge = (severity) => {
     switch (severity) {
       case 'CRITICAL':
@@ -378,7 +392,7 @@ export default function EmergencyPage() {
                   <th style={{ padding: '0.75rem 1rem' }}>Caller / Resident</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Severity &amp; Status</th>
                   <th style={{ padding: '0.75rem 1rem' }}>Time</th>
-                  {isSecurity && <th style={{ padding: '0.75rem 1rem' }}>Command Actions</th>}
+                  <th style={{ padding: '0.75rem 1rem' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -417,33 +431,40 @@ export default function EmergencyPage() {
                       <div>{new Date(alt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
                       <div style={{ fontSize: '0.75rem' }}>{new Date(alt.createdAt).toLocaleDateString()}</div>
                     </td>
-                    {isSecurity && (
-                      <td style={{ padding: '0.75rem 1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          {alt.status === 'ACTIVE' && (
-                            <button
-                              className="btn btn-outline"
-                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderColor: '#0284c7', color: '#0284c7' }}
-                              onClick={() => handleAcknowledge(alt.alertCode)}
-                            >
-                              Acknowledge
-                            </button>
-                          )}
-                          {(alt.status === 'ACTIVE' || alt.status === 'ACKNOWLEDGED') && (
-                            <button
-                              className="btn btn-primary"
-                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', backgroundColor: '#10b981', border: 'none' }}
-                              onClick={() => {
-                                setActiveAlertToResolve(alt);
-                                setResolveForm({ status: 'RESOLVED', notes: '' });
-                              }}
-                            >
-                              Resolve
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    )}
+                    <td style={{ padding: '0.75rem 1rem' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {isSecurity && alt.status === 'ACTIVE' && (
+                          <button
+                            className="btn btn-outline"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderColor: '#0284c7', color: '#0284c7' }}
+                            onClick={() => handleAcknowledge(alt.alertCode)}
+                          >
+                            Acknowledge
+                          </button>
+                        )}
+                        {isSecurity && (alt.status === 'ACTIVE' || alt.status === 'ACKNOWLEDGED') && (
+                          <button
+                            className="btn btn-primary"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', backgroundColor: '#10b981', border: 'none' }}
+                            onClick={() => {
+                              setActiveAlertToResolve(alt);
+                              setResolveForm({ status: 'RESOLVED', notes: '' });
+                            }}
+                          >
+                            Resolve
+                          </button>
+                        )}
+                        {alt.status === 'RESOLVED' && (
+                          <button
+                            className="btn btn-outline"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#fff', backgroundColor: '#dc2626', borderColor: '#dc2626' }}
+                            onClick={() => handleDeleteAlert(alt.alertCode)}
+                          >
+                            🗑 Delete
+                          </button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>

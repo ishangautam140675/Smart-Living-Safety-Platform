@@ -81,4 +81,11 @@ public class EmergencyController {
         EmergencySummaryResponse summary = emergencyService.getSummary();
         return ResponseEntity.ok(summary);
     }
+
+    @DeleteMapping("/alerts/{alertCode}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SECURITY', 'STAFF')")
+    public ResponseEntity<Void> deleteAlert(@PathVariable String alertCode) {
+        emergencyService.deleteAlert(alertCode);
+        return ResponseEntity.noContent().build();
+    }
 }

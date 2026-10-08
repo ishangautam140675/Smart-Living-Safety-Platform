@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.util.List;
 
@@ -94,5 +95,12 @@ public class ResidentController {
     public ResponseEntity<ApiResponse<ResidentResponse>> checkoutResident(@PathVariable Long id) {
         ResidentResponse updated = residentService.checkoutResident(id);
         return ResponseEntity.ok(ApiResponse.success("Resident checked out and bed deallocated successfully", updated));
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteResident(@PathVariable Long id) {
+        residentService.deleteResident(id);
+        return ResponseEntity.ok(ApiResponse.success("Resident deleted permanently", null));
     }
 }

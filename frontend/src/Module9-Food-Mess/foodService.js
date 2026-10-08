@@ -155,5 +155,17 @@ export const foodService = {
       throw new Error(err.message || 'Failed to clear old menus');
     }
     return res.json();
+  },
+
+  // Mock catalog for F3
+  async getFoodCatalog() {
+    return [
+      { id: 1, title: 'Idli Sambar', price: 40, imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc' },
+      { id: 2, title: 'Masala Dosa', price: 60, imageUrl: 'https://images.unsplash.com/photo-1668236543090-82eba5ee5976' },
+      { id: 3, title: 'Aloo Paratha', price: 50, imageUrl: 'https://images.unsplash.com/photo-1626776876729-bab4369a5a5a' },
+      { id: 4, title: 'Chicken Biryani', price: 150, imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8' },
+      { id: 5, title: 'Veg Thali', price: 100, imageUrl: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d' },
+      { id: 6, title: 'Pasta', price: 80, imageUrl: 'https://images.unsplash.com/photo-1621996316220-dbd52709aaf9' },
+    ];
   }
 };

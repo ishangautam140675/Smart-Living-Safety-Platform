@@ -103,4 +103,76 @@ export const roomService = {
     }
     return result.data;
   },
+
+  async submitBookingRequest(roomId, bedId, requestNote) {
+    const response = await fetch(`${API_BASE_URL}/api/room-booking-requests`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ roomId, bedId, requestNote }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to submit booking request');
+    }
+    return result.data;
+  },
+
+  async getMyBookingRequests() {
+    const response = await fetch(`${API_BASE_URL}/api/room-booking-requests/my`, {
+      headers: getAuthHeaders(),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to fetch your booking requests');
+    }
+    return result.data;
+  },
+
+  async getPendingBookingRequests() {
+    const response = await fetch(`${API_BASE_URL}/api/room-booking-requests/pending`, {
+      headers: getAuthHeaders(),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to fetch pending booking requests');
+    }
+    return result.data;
+  },
+
+  async getAllBookingRequests() {
+    const response = await fetch(`${API_BASE_URL}/api/room-booking-requests`, {
+      headers: getAuthHeaders(),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to fetch all booking requests');
+    }
+    return result.data;
+  },
+
+  async approveBookingRequest(id, adminNote) {
+    const response = await fetch(`${API_BASE_URL}/api/room-booking-requests/${id}/approve`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ adminNote }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to approve booking request');
+    }
+    return result.data;
+  },
+
+  async rejectBookingRequest(id, adminNote) {
+    const response = await fetch(`${API_BASE_URL}/api/room-booking-requests/${id}/reject`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ adminNote }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to reject booking request');
+    }
+    return result.data;
+  },
 };

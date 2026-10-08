@@ -181,4 +181,13 @@ public class EmergencyService {
 
         return resp;
     }
+
+    public void deleteAlert(String alertCode) {
+        EmergencyAlert alert = emergencyAlertRepository.findByAlertCode(alertCode.trim().toUpperCase())
+                .orElseThrow(() -> new ResourceNotFoundException("Emergency alert not found with code: " + alertCode));
+        if (alert.getStatus() != EmergencyStatus.RESOLVED) {
+            throw new AppException("Only resolved alerts can be deleted");
+        }
+        emergencyAlertRepository.delete(alert);
+    }
 }

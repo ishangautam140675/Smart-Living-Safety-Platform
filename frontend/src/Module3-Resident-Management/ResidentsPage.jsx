@@ -188,6 +188,22 @@ export default function ResidentsPage() {
     }
   };
 
+  const handleDeleteResident = async (residentId, residentName) => {
+    if (!window.confirm(`Are you sure you want to permanently delete ${residentName}?`)) {
+      return;
+    }
+    setError('');
+    setSuccessMsg('');
+    try {
+      await residentService.deleteResident(residentId);
+      setSuccessMsg(`Resident ${residentName} deleted permanently.`);
+      syncHub.emit('RESIDENTS', 'DELETE', { residentId });
+      await loadData();
+    } catch (err) {
+      setError(err.message || 'Delete failed');
+    }
+  };
+
   const handleSaveMyProfile = async (e) => {
     e.preventDefault();
     setError('');
@@ -791,20 +807,37 @@ export default function ResidentsPage() {
                       </div>
                     </div>
 
-                    {isAdmin && isActive && (
-                      <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end' }}>
-                        <button
-                          onClick={() => handleCheckout(r.id, r.fullName)}
-                          className="btn btn-outline"
-                          style={{
-                            fontSize: '0.75rem',
-                            padding: '0.25rem 0.6rem',
-                            color: 'var(--danger)',
-                            borderColor: '#fca5a5',
-                          }}
-                        >
-                          Checkout Resident
-                        </button>
+                    {isAdmin && (isActive || r.status === 'CHECKED_OUT') && (
+                      <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                        {isActive && (
+                          <button
+                            onClick={() => handleCheckout(r.id, r.fullName)}
+                            className="btn btn-outline"
+                            style={{
+                              fontSize: '0.75rem',
+                              padding: '0.25rem 0.6rem',
+                              color: 'var(--danger)',
+                              borderColor: '#fca5a5',
+                            }}
+                          >
+                            Checkout Resident
+                          </button>
+                        )}
+                        {r.status === 'CHECKED_OUT' && (
+                          <button
+                            onClick={() => handleDeleteResident(r.id, r.fullName)}
+                            className="btn btn-outline"
+                            style={{
+                              fontSize: '0.75rem',
+                              padding: '0.25rem 0.6rem',
+                              color: 'white',
+                              backgroundColor: 'var(--danger)',
+                              borderColor: 'var(--danger)',
+                            }}
+                          >
+                            Delete
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>

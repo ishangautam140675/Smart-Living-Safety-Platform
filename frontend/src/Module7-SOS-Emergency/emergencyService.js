@@ -96,5 +96,18 @@ export const emergencyService = {
       throw new Error(err.message || 'Failed to fetch emergency stats');
     }
     return res.json();
+  },
+
+  // Delete resolved alert (Admin/Security)
+  async deleteAlert(alertCode) {
+    const res = await fetch(`${BASE_URL}/alerts/${encodeURIComponent(alertCode)}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Failed to delete alert');
+    }
+    return res;
   }
 };

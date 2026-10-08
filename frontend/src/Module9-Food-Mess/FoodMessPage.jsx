@@ -24,6 +24,7 @@ export default function FoodMessPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [foodCatalog, setFoodCatalog] = useState([]);
 
   // Admin Create/Edit Menu Modal
   const [showMenuModal, setShowMenuModal] = useState(false);
@@ -34,7 +35,9 @@ export default function FoodMessPage() {
     items: '',
     isVeg: true,
     dietaryNotes: '',
-    calories: '450 kcal'
+    calories: '450 kcal',
+    imageUrl: '',
+    price: 0
   });
   const [savingMenu, setSavingMenu] = useState(false);
 
@@ -56,12 +59,14 @@ export default function FoodMessPage() {
     setLoading(true);
     setError('');
     try {
-      const [menuList, stats] = await Promise.all([
+      const [menuList, stats, catalog] = await Promise.all([
         foodService.getDailyMenu(selectedDate).catch(() => []),
-        isAdminOrStaff ? foodService.getMessSummary(selectedDate).catch(() => null) : null
+        isAdminOrStaff ? foodService.getMessSummary(selectedDate).catch(() => null) : null,
+        foodService.getFoodCatalog().catch(() => [])
       ]);
       setDailyMenus(menuList || []);
       if (stats) setSummary(stats);
+      if (catalog) setFoodCatalog(catalog);
     } catch (err) {
       setError(err.message || 'Failed to load meal data');
     } finally {
@@ -180,7 +185,9 @@ export default function FoodMessPage() {
       items: menu.items,
       isVeg: menu.veg,
       dietaryNotes: menu.dietaryNotes || '',
-      calories: menu.calories || ''
+      calories: menu.calories || '',
+      imageUrl: menu.imageUrl || '',
+      price: menu.price || 0
     });
     setShowMenuModal(true);
   };
@@ -379,6 +386,9 @@ export default function FoodMessPage() {
                 }}
               >
                 {/* Meal Header */}
+                {menu.imageUrl && (
+                  <img src={menu.imageUrl} alt={menu.title} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.75rem' }} />
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
                   <div>
                     <span style={{ fontSize: '1.3rem', marginRight: '0.35rem' }}>{mealConfig.icon}</span>
@@ -407,7 +417,7 @@ export default function FoodMessPage() {
 
                 {/* Title & Items */}
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0.5rem 0', color: 'var(--text-main)' }}>
-                  {menu.title}
+                  {menu.title} {menu.price > 0 && <span style={{ color: '#059669', fontSize: '1rem', marginLeft: '0.5rem' }}>₹{menu.price}</span>}
                 </h3>
                 <div style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.5, flex: 1, backgroundColor: '#f8fafc', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   {menu.items}
@@ -570,6 +580,42 @@ export default function FoodMessPage() {
                     onChange={(e) => setMenuForm({ ...menuForm, calories: e.target.value })}
                     style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Image URL</label>
+                  <input
+                    type="text"
+                    placeholder="https://images.unsplash..."
+                    value={menuForm.imageUrl}
+                    onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Price (₹) (0 for Mess)</label>
+                  <input
+                    type="number"
+                    value={menuForm.price}
+                    onChange={(e) => setMenuForm({ ...menuForm, price: parseFloat(e.target.value) || 0 })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                  />
+                </div>
+              </div>
+              
+              <div style={{ marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>Pick from Food Catalog</label>
+                <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                  {foodCatalog.map(cat => (
+                     <div key={cat.id} onClick={() => setMenuForm({ ...menuForm, title: cat.title, price: cat.price, imageUrl: cat.imageUrl })} style={{ flexShrink: 0, width: '120px', cursor: 'pointer', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden' }}>
+                        <img src={cat.imageUrl} alt={cat.title} style={{ width: '100%', height: '70px', objectFit: 'cover' }} />
+                        <div style={{ padding: '0.4rem', fontSize: '0.75rem', fontWeight: 600, textAlign: 'center' }}>
+                          {cat.title}<br/><span style={{ color: '#059669' }}>₹{cat.price}</span>
+                        </div>
+                     </div>
+                  ))}
                 </div>
               </div>
 

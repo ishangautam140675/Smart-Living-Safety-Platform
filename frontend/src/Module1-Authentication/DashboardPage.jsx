@@ -1,10 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { roomService } from '../Module2-Property-And-Rooms/roomService';
 
 export default function DashboardPage() {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const [hasNoBooking, setHasNoBooking] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.roles?.includes('ROLE_RESIDENT')) {
+      roomService.getMyBookingRequests().then(reqs => {
+         const hasApprovedOrPending = reqs.some(r => r.status === 'APPROVED' || r.status === 'PENDING');
+         if (!hasApprovedOrPending) {
+            setHasNoBooking(true);
+         }
+      }).catch(err => console.error(err));
+    }
+  }, [isAuthenticated, user]);
 
   const handleLogout = () => {
     logout();
@@ -80,6 +93,16 @@ export default function DashboardPage() {
 
   return (
     <div style={{ maxWidth: '1240px', margin: '0 auto', padding: '1rem 0 3rem' }}>
+      {hasNoBooking && (
+        <div style={{ padding: '1rem 1.5rem', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', marginBottom: '1.5rem', color: '#92400e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <strong style={{ fontSize: '1.1rem' }}>⚠️ Action Required</strong>
+            <div style={{ fontSize: '0.9rem', marginTop: '0.2rem' }}>You haven't requested a room yet. Please go to Rooms to request one.</div>
+          </div>
+          <Link to="/rooms" className="btn btn-primary" style={{ background: '#d97706', border: 'none' }}>Go to Rooms</Link>
+        </div>
+      )}
+
       {/* User Welcome Banner */}
       {isAuthenticated && user ? (
         <div style={{

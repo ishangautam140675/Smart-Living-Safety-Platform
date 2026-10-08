@@ -301,20 +301,74 @@ export default function RoomsPage() {
 
   const closeGallery = () => setGalleryRoom(null);
 
+  const [bookingNote, setBookingNote] = useState('');
+  const [bookingRequests, setBookingRequests] = useState([]);
+  const [adminNoteMap, setAdminNoteMap] = useState({});
+  const [activeTab, setActiveTab] = useState('rooms'); // 'rooms' or 'requests'
+
+  const fetchRequests = async () => {
+    try {
+      if (isAdmin || user?.roles?.includes('ROLE_STAFF')) {
+        const reqs = await roomService.getAllBookingRequests();
+        setBookingRequests(reqs);
+      } else if (isResident) {
+        const reqs = await roomService.getMyBookingRequests();
+        setBookingRequests(reqs);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'requests') {
+      fetchRequests();
+    }
+  }, [activeTab]);
+
   const openBooking = (room) => {
     const freeBeds = room.beds?.filter((b) => b.status === 'AVAILABLE') || [];
     setBookingRoom({ ...room, freeBeds });
     setBookingBedId(freeBeds[0]?.id || '');
     setBookingMsg('');
+    setBookingNote('');
   };
 
   const handleBookRoom = async () => {
+    if (!bookingBedId) {
+      setBookingMsg('❌ Please select a bed');
+      return;
+    }
     setBookingMsg('⏳ Submitting booking request...');
-    setTimeout(() => {
-      setBookingMsg('✅ Booking request submitted! Admin will confirm within 24 hrs. Check Payments section for invoice.');
-    }, 1000);
+    try {
+      await roomService.submitBookingRequest(bookingRoom.id, bookingBedId, bookingNote);
+      setBookingMsg('✅ Booking request submitted! Admin will confirm within 24 hrs.');
+      setTimeout(() => setBookingRoom(null), 2000);
+      loadData(false);
+    } catch (err) {
+      setBookingMsg('❌ Error: ' + err.message);
+    }
   };
 
+  const handleApproveRequest = async (id) => {
+    try {
+      await roomService.approveBookingRequest(id, adminNoteMap[id] || '');
+      fetchRequests();
+      loadData(false);
+    } catch (err) {
+      alert('Failed to approve: ' + err.message);
+    }
+  };
+
+  const handleRejectRequest = async (id) => {
+    try {
+      await roomService.rejectBookingRequest(id, adminNoteMap[id] || '');
+      fetchRequests();
+      loadData(false);
+    } catch (err) {
+      alert('Failed to reject: ' + err.message);
+    }
+  };
   const getStatusStyles = (status) => {
     switch (status) {
       case 'AVAILABLE':
@@ -384,43 +438,63 @@ export default function RoomsPage() {
         )}
       </div>
 
-      {/* ── Messages ──────────────────────────────────────────────────── */}
-      {error && (
-        <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>⚠️ {error}</div>
-      )}
-      {successMsg && (
-        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', padding: '0.75rem 1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-          {successMsg}
-        </div>
-      )}
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--border)' }}>
+        <button
+          onClick={() => setActiveTab('rooms')}
+          style={{ padding: '0.75rem 1.5rem', background: 'none', border: 'none', borderBottom: activeTab === 'rooms' ? '3px solid var(--primary)' : '3px solid transparent', color: activeTab === 'rooms' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: activeTab === 'rooms' ? 800 : 600, fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s' }}
+        >
+          🏨 Rooms & Beds
+        </button>
+        {(isResident || isAdmin || isStaffOrAdmin) && (
+          <button
+            onClick={() => setActiveTab('requests')}
+            style={{ padding: '0.75rem 1.5rem', background: 'none', border: 'none', borderBottom: activeTab === 'requests' ? '3px solid var(--primary)' : '3px solid transparent', color: activeTab === 'requests' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: activeTab === 'requests' ? 800 : 600, fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s' }}
+          >
+            📋 Booking Requests
+          </button>
+        )}
+      </div>
 
-      {/* ── KPI Metrics ───────────────────────────────────────────────── */}
-      {summary && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          {[
-            { label: 'Total Rooms', value: summary.totalRooms, sub: `${summary.totalProperties} properties`, color: 'var(--text-main)' },
-            { label: 'Total Beds', value: summary.totalBeds, sub: 'Total capacity', color: 'var(--text-main)' },
-            { label: 'Available Beds', value: summary.availableBeds, sub: 'Ready to book', color: '#16a34a' },
-            { label: 'Occupied Beds', value: summary.occupiedBeds, sub: 'Active residents', color: '#2563eb' },
-            { label: 'Occupancy Rate', value: `${summary.occupancyRate.toFixed(1)}%`, sub: null, color: '#7c3aed', isBar: true, rate: summary.occupancyRate },
-          ].map((kpi, i) => (
-            <div className="card" key={i} style={{ padding: '1.25rem' }}>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {kpi.label}
-              </span>
-              <div style={{ fontSize: '2rem', fontWeight: 800, color: kpi.color, marginTop: '0.25rem', lineHeight: 1 }}>
-                {kpi.value}
-              </div>
-              {kpi.sub && <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{kpi.sub}</span>}
-              {kpi.isBar && (
-                <div style={{ background: 'var(--border)', borderRadius: '999px', height: '6px', marginTop: '0.5rem', overflow: 'hidden' }}>
-                  <div style={{ background: '#7c3aed', width: `${Math.min(100, kpi.rate)}%`, height: '100%', borderRadius: '999px' }} />
-                </div>
-              )}
+      {activeTab === 'rooms' ? (
+        <>
+          {/* ── Messages ──────────────────────────────────────────────────── */}
+          {error && (
+            <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>⚠️ {error}</div>
+          )}
+          {successMsg && (
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', padding: '0.75rem 1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+              {successMsg}
             </div>
-          ))}
-        </div>
-      )}
+          )}
+
+          {/* ── KPI Metrics ───────────────────────────────────────────────── */}
+          {summary && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+              {[
+                { label: 'Total Rooms', value: summary.totalRooms, sub: `${summary.totalProperties} properties`, color: 'var(--text-main)' },
+                { label: 'Total Beds', value: summary.totalBeds, sub: 'Total capacity', color: 'var(--text-main)' },
+                { label: 'Available Beds', value: summary.availableBeds, sub: 'Ready to book', color: '#16a34a' },
+                { label: 'Occupied Beds', value: summary.occupiedBeds, sub: 'Active residents', color: '#2563eb' },
+                { label: 'Occupancy Rate', value: `${summary.occupancyRate.toFixed(1)}%`, sub: null, color: '#7c3aed', isBar: true, rate: summary.occupancyRate },
+              ].map((kpi, i) => (
+                <div className="card" key={i} style={{ padding: '1.25rem' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    {kpi.label}
+                  </span>
+                  <div style={{ fontSize: '2rem', fontWeight: 800, color: kpi.color, marginTop: '0.25rem', lineHeight: 1 }}>
+                    {kpi.value}
+                  </div>
+                  {kpi.sub && <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{kpi.sub}</span>}
+                  {kpi.isBar && (
+                    <div style={{ background: 'var(--border)', borderRadius: '999px', height: '6px', marginTop: '0.5rem', overflow: 'hidden' }}>
+                      <div style={{ background: '#7c3aed', width: `${Math.min(100, kpi.rate)}%`, height: '100%', borderRadius: '999px' }} />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
       {/* ── Add Room Form with Dataset Selector ────────────────────────── */}
       {showAddRoom && (
@@ -717,6 +791,61 @@ export default function RoomsPage() {
           })}
         </div>
       )}
+      </>
+      ) : (
+        <div>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1rem' }}>Booking Requests</h3>
+          {bookingRequests.length === 0 ? (
+             <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
+                <p>No booking requests found.</p>
+             </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+              {bookingRequests.map(req => (
+                <div key={req.id} className="card" style={{ padding: '1rem', border: '1px solid var(--border)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                    <strong>{req.userName}</strong>
+                    <span style={{ 
+                      fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '4px',
+                      background: req.status === 'PENDING' ? '#fef3c7' : req.status === 'APPROVED' ? '#dcfce7' : '#fee2e2',
+                      color: req.status === 'PENDING' ? '#b45309' : req.status === 'APPROVED' ? '#166534' : '#b91c1c'
+                    }}>{req.status}</span>
+                  </div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                    {req.userEmail} <br/>
+                    Room {req.roomNumber} - Bed {req.bedNumber} <br/>
+                    <div style={{ marginTop: '0.5rem', background: '#f8fafc', padding: '0.5rem', borderRadius: '4px' }}>
+                      <em>"{req.requestNote || 'No notes'}"</em>
+                    </div>
+                  </div>
+                  {req.adminNote && (
+                     <div style={{ fontSize: '0.8rem', color: '#2563eb', marginTop: '0.5rem' }}>
+                       <strong>Admin:</strong> {req.adminNote}
+                     </div>
+                  )}
+
+                  {isAdmin && req.status === 'PENDING' && (
+                    <div style={{ marginTop: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Admin Note (optional)" 
+                        className="form-control"
+                        style={{ marginBottom: '0.5rem', fontSize: '0.8rem', padding: '0.4rem' }}
+                        value={adminNoteMap[req.id] || ''}
+                        onChange={(e) => setAdminNoteMap({...adminNoteMap, [req.id]: e.target.value})}
+                      />
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.8rem', padding: '0.3rem', background: '#16a34a', border: 'none' }} onClick={() => handleApproveRequest(req.id)}>Approve</button>
+                        <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.8rem', padding: '0.3rem', background: '#ef4444', border: 'none' }} onClick={() => handleRejectRequest(req.id)}>Reject</button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Photo Gallery Lightbox ────────────────────────────────────── */}
       {galleryRoom && (() => {
@@ -857,6 +986,19 @@ export default function RoomsPage() {
                     <span>₹{Math.round(bookingRoom.baseRent * 1.23).toLocaleString()}</span>
                   </div>
                 </div>
+
+                  <div style={{ marginBottom: '1.25rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-main)' }}>
+                      Request Note / Preferences
+                    </label>
+                    <textarea
+                      value={bookingNote}
+                      onChange={(e) => setBookingNote(e.target.value)}
+                      placeholder="Optional notes for admin..."
+                      className="form-control"
+                      style={{ width: '100%', padding: '0.6rem', resize: 'vertical' }}
+                    />
+                  </div>
 
                 {bookingMsg && (
                   <div style={{ padding: '0.75rem', background: bookingMsg.startsWith('✅') ? '#f0fdf4' : '#f8fafc', border: `1px solid ${bookingMsg.startsWith('✅') ? '#bbf7d0' : '#e2e8f0'}`, borderRadius: '8px', fontSize: '0.88rem', marginBottom: '1rem', color: bookingMsg.startsWith('✅') ? '#166534' : '#0f172a' }}>
