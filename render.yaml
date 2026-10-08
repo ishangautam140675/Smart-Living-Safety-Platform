@@ -7,6 +7,14 @@ services:
     healthCheckPath: /api/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
-        value: h2
+        value: mysql
+      - key: JPA_DDL_AUTO
+        value: update
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
       - key: JWT_SECRET
         generateValue: true
