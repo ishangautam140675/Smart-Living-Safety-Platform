@@ -124,7 +124,7 @@ export default function RoomsPage() {
     const interval = setInterval(() => {
       loadData(false);
       fetchRequests();
-    }, 15000);
+    }, 45000);
     return () => clearInterval(interval);
   }, [statusFilter, typeFilter]);
 

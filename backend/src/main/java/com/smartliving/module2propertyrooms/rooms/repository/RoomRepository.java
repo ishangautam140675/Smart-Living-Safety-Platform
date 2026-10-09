@@ -25,10 +25,14 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
 
     long countByStatus(RoomStatus status);
 
-    @Query("SELECT r FROM Room r WHERE " +
-           "(:floorId IS NULL OR r.floor.id = :floorId) AND " +
-           "(:buildingId IS NULL OR r.floor.building.id = :buildingId) AND " +
-           "(:propertyId IS NULL OR r.floor.building.property.id = :propertyId) AND " +
+    @Query("SELECT DISTINCT r FROM Room r " +
+           "LEFT JOIN FETCH r.floor f " +
+           "LEFT JOIN FETCH f.building b " +
+           "LEFT JOIN FETCH b.property p " +
+           "LEFT JOIN FETCH r.beds bd " +
+           "WHERE (:floorId IS NULL OR f.id = :floorId) AND " +
+           "(:buildingId IS NULL OR b.id = :buildingId) AND " +
+           "(:propertyId IS NULL OR p.id = :propertyId) AND " +
            "(:status IS NULL OR r.status = :status) AND " +
            "(:roomType IS NULL OR r.roomType = :roomType)")
     List<Room> findWithFilters(@Param("floorId") Long floorId,

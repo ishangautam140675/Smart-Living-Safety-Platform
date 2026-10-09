@@ -70,11 +70,11 @@ export default function ResidentsPage() {
     return unsubscribe;
   }, [searchQuery, statusFilter]);
 
-  // Fallback periodic sync every 10 seconds
+  // Fallback periodic sync every 45 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       loadData(false);
-    }, 10000);
+    }, 45000);
     return () => clearInterval(interval);
   }, [searchQuery, statusFilter]);
 

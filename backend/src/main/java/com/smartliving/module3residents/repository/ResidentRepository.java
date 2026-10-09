@@ -31,13 +31,15 @@ public interface ResidentRepository extends JpaRepository<Resident, Long> {
 
     long countByStatus(ResidentStatus status);
 
-    @Query("SELECT r FROM Resident r WHERE " +
-           "(:status IS NULL OR r.status = :status) AND " +
+    @Query("SELECT r FROM Resident r " +
+           "JOIN FETCH r.user u " +
+           "LEFT JOIN FETCH r.bed b " +
+           "WHERE (:status IS NULL OR r.status = :status) AND " +
            "(:keyword IS NULL OR " +
-           "LOWER(r.user.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(r.user.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(u.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
            "LOWER(r.admissionNumber) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-           "LOWER(r.user.phone) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+           "LOWER(u.phone) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Resident> searchResidents(@Param("keyword") String keyword,
                                    @Param("status") ResidentStatus status);
 }
