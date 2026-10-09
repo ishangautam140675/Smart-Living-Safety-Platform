@@ -21,7 +21,6 @@ public class SmartLivingApplication {
             if (!mysqlOk) {
                 System.out.println("[SmartLiving] MySQL unavailable — switching to H2 (site stays live!)");
                 System.setProperty("spring.profiles.active", "h2");
-                // Clear any broken datasource props so H2 config takes over cleanly
                 System.clearProperty("spring.datasource.url");
                 System.clearProperty("spring.datasource.username");
                 System.clearProperty("spring.datasource.password");
@@ -33,17 +32,22 @@ public class SmartLivingApplication {
 
     private static boolean setupAndTestMySQL() {
         try {
-            // Get and sanitize URL
             String dbUrl = System.getenv("DB_URL");
-            if (dbUrl == null || dbUrl.trim().isEmpty()) return false;
+            if (dbUrl == null || dbUrl.trim().isEmpty()) {
+                System.out.println("[SmartLiving] DB_URL not set.");
+                return false;
+            }
 
             String s = dbUrl.trim();
+            // Strip surrounding quotes
             if (s.startsWith("\"") && s.endsWith("\"")) s = s.substring(1, s.length() - 1).trim();
             if (s.startsWith("'") && s.endsWith("'")) s = s.substring(1, s.length() - 1).trim();
+
+            // Ensure jdbc:mysql:// prefix
             if (s.startsWith("mysql://")) s = "jdbc:" + s;
             if (!s.startsWith("jdbc:mysql://")) s = "jdbc:mysql://" + s;
 
-            // Fix double slashes and question marks
+            // Fix double slashes
             int pe = s.indexOf("://") + 3;
             if (pe > 2) {
                 String proto = s.substring(0, pe);
@@ -59,35 +63,38 @@ public class SmartLivingApplication {
                 if (se < at) s = s.substring(0, se) + s.substring(at + 1);
             }
 
-            // Ensure required params
-            if (!s.contains("serverTimezone")) s += (s.contains("?") ? "&" : "?") + "serverTimezone=UTC";
-            if (!s.contains("sslMode")) s += "&sslMode=VERIFY_IDENTITY";
+            // Add serverTimezone if missing (but don't touch SSL — let user control it)
+            if (!s.contains("serverTimezone")) {
+                s += (s.contains("?") ? "&" : "?") + "serverTimezone=UTC";
+            }
 
             // Get credentials
             String user = System.getenv("DB_USERNAME");
             String pass = System.getenv("DB_PASSWORD");
-            if (user == null || user.trim().isEmpty()) return false;
-
+            if (user == null || user.trim().isEmpty()) {
+                System.out.println("[SmartLiving] DB_USERNAME not set.");
+                return false;
+            }
             user = user.trim();
-            pass = pass != null ? pass.trim() : "";
+            pass = (pass != null) ? pass.trim() : "";
 
-            System.out.println("[SmartLiving] Testing MySQL connection. User: " + user);
+            System.out.println("[SmartLiving] Testing MySQL connection to: " + s.replaceAll("password=[^&]*", "password=***"));
+            System.out.println("[SmartLiving] User: " + user);
 
-            // Test actual connection with 8 second timeout
+            // Test actual connection
             Class.forName("com.mysql.cj.jdbc.Driver");
             Properties props = new Properties();
             props.setProperty("user", user);
             props.setProperty("password", pass);
-            props.setProperty("connectTimeout", "8000");
-            props.setProperty("socketTimeout", "8000");
+            props.setProperty("connectTimeout", "10000");
+            props.setProperty("socketTimeout", "10000");
 
             try (Connection conn = DriverManager.getConnection(s, props)) {
                 if (conn.isValid(5)) {
-                    // Connection works — apply settings
                     System.setProperty("spring.datasource.url", s);
                     System.setProperty("spring.datasource.username", user);
                     System.setProperty("spring.datasource.password", pass);
-                    System.out.println("[SmartLiving] MySQL connected successfully!");
+                    System.out.println("[SmartLiving] ✅ MySQL connected! Running in CLOUD mode.");
                     return true;
                 }
             }
