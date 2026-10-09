@@ -80,14 +80,16 @@ public class SmartLivingApplication {
 
             System.out.println("[SmartLiving] Testing MySQL connection to: " + s.replaceAll("password=[^&]*", "password=***"));
             System.out.println("[SmartLiving] User: " + user);
+            System.out.flush();
 
             // Test actual connection
             Class.forName("com.mysql.cj.jdbc.Driver");
+            DriverManager.setLoginTimeout(8);
             Properties props = new Properties();
             props.setProperty("user", user);
             props.setProperty("password", pass);
-            props.setProperty("connectTimeout", "10000");
-            props.setProperty("socketTimeout", "10000");
+            props.setProperty("connectTimeout", "8000");
+            props.setProperty("socketTimeout", "8000");
 
             try (Connection conn = DriverManager.getConnection(s, props)) {
                 if (conn.isValid(5)) {
