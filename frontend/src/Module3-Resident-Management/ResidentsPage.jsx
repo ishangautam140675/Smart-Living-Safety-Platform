@@ -188,8 +188,29 @@ export default function ResidentsPage() {
     }
   };
 
-  const handleDeleteResident = async (residentId, residentName) => {
-    if (!window.confirm(`Are you sure you want to permanently delete ${residentName}?`)) {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setError('');
+    try {
+      await loadData(false);
+      setSuccessMsg('✓ Resident data refreshed from cloud');
+      syncHub.emit('RESIDENTS', 'REFRESH');
+      syncHub.emit('ROOMS', 'REFRESH');
+      setTimeout(() => setSuccessMsg(''), 2500);
+    } catch (err) {
+      setError('Refresh failed: ' + err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleDeleteResident = async (residentId, residentName, isActive = false) => {
+    const confirmPrompt = isActive
+      ? `Are you sure you want to delete ${residentName}? This resident is currently ACTIVE. Deleting them will unassign and free their room/bed automatically.`
+      : `Are you sure you want to permanently delete resident ${residentName}?`;
+    if (!window.confirm(confirmPrompt)) {
       return;
     }
     setError('');
@@ -198,7 +219,9 @@ export default function ResidentsPage() {
       await residentService.deleteResident(residentId);
       setSuccessMsg(`Resident ${residentName} deleted permanently.`);
       syncHub.emit('RESIDENTS', 'DELETE', { residentId });
+      syncHub.emit('ROOMS', 'BED_FREED', { residentId });
       await loadData();
+      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
       setError(err.message || 'Delete failed');
     }
@@ -254,12 +277,14 @@ export default function ResidentsPage() {
 
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <button
-            onClick={() => loadData(true)}
+            onClick={handleRefresh}
+            disabled={refreshing}
             className="btn btn-outline"
             style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}
             title="Refresh latest data from database"
           >
-            🔄 Refresh
+            <span style={{ display: 'inline-block', transform: refreshing ? 'rotate(180deg)' : 'none', transition: 'transform 0.5s' }}>🔄</span>
+            <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
           {isAdmin && (
             <button
@@ -807,8 +832,8 @@ export default function ResidentsPage() {
                       </div>
                     </div>
 
-                    {isAdmin && (isActive || r.status === 'CHECKED_OUT') && (
-                      <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+                    {isAdmin && (
+                      <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', alignItems: 'center' }}>
                         {isActive && (
                           <button
                             onClick={() => handleCheckout(r.id, r.fullName)}
@@ -816,28 +841,29 @@ export default function ResidentsPage() {
                             style={{
                               fontSize: '0.75rem',
                               padding: '0.25rem 0.6rem',
-                              color: 'var(--danger)',
-                              borderColor: '#fca5a5',
+                              color: '#b45309',
+                              borderColor: '#fde68a',
+                              backgroundColor: '#fffbeb',
                             }}
                           >
-                            Checkout Resident
+                            Checkout
                           </button>
                         )}
-                        {r.status === 'CHECKED_OUT' && (
-                          <button
-                            onClick={() => handleDeleteResident(r.id, r.fullName)}
-                            className="btn btn-outline"
-                            style={{
-                              fontSize: '0.75rem',
-                              padding: '0.25rem 0.6rem',
-                              color: 'white',
-                              backgroundColor: 'var(--danger)',
-                              borderColor: 'var(--danger)',
-                            }}
-                          >
-                            Delete
-                          </button>
-                        )}
+                        <button
+                          onClick={() => handleDeleteResident(r.id, r.fullName, isActive)}
+                          className="btn btn-outline"
+                          style={{
+                            fontSize: '0.75rem',
+                            padding: '0.25rem 0.6rem',
+                            color: '#dc2626',
+                            borderColor: '#fca5a5',
+                            backgroundColor: '#fff',
+                            fontWeight: 600,
+                          }}
+                          title="Permanently delete resident"
+                        >
+                          🗑️ Delete
+                        </button>
                       </div>
                     )}
                   </div>

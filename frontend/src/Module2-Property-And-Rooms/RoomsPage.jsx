@@ -4,6 +4,7 @@ import { roomService } from './roomService';
 import { propertyService } from './propertyService';
 import { ROOM_IMAGE_DATASET, ROOM_DATASET_CATEGORIES } from '../utils/roomImageDataset';
 import { getCustomPhotosForRoom, saveCustomPhotosForRoom } from '../utils/roomDatasetManager';
+import { syncHub } from '../utils/syncHub';
 
 // ─── Default fallback photo per room type ──────────────────────────────────
 const ROOM_PHOTOS = {
@@ -100,15 +101,30 @@ export default function RoomsPage() {
   // Local assigned photos map: roomId/key -> array of photos
   const [roomCustomPhotos, setRoomCustomPhotos] = useState({});
 
+  const [refreshing, setRefreshing] = useState(false);
+
   useEffect(() => {
     loadData();
+    fetchRequests();
   }, [statusFilter, typeFilter]);
+
+  // Real-time cross-tab sync listener
+  useEffect(() => {
+    const unsubscribe = syncHub.subscribe((evt) => {
+      if (evt.module === 'ROOMS' || evt.module === 'RESIDENTS') {
+        loadData(false);
+        fetchRequests();
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   // Real-time polling so room/bed allocations sync across admin and resident
   useEffect(() => {
     const interval = setInterval(() => {
       loadData(false);
-    }, 20000);
+      fetchRequests();
+    }, 15000);
     return () => clearInterval(interval);
   }, [statusFilter, typeFilter]);
 
@@ -350,11 +366,34 @@ export default function RoomsPage() {
     }
   };
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setError('');
+    try {
+      await Promise.all([
+        loadData(false),
+        fetchRequests(),
+      ]);
+      setSuccessMsg('✓ Data refreshed from cloud successfully');
+      syncHub.emit('ROOMS', 'REFRESH');
+      syncHub.emit('RESIDENTS', 'REFRESH');
+      setTimeout(() => setSuccessMsg(''), 2500);
+    } catch (err) {
+      setError('Refresh failed: ' + err.message);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const handleApproveRequest = async (id) => {
     try {
       await roomService.approveBookingRequest(id, adminNoteMap[id] || '');
-      fetchRequests();
-      loadData(false);
+      setSuccessMsg('✓ Booking approved! Resident is now ACTIVE and assigned to the bed.');
+      syncHub.emit('ROOMS', 'BOOKING_APPROVED', { id });
+      syncHub.emit('RESIDENTS', 'BED_ALLOCATED', { id });
+      await fetchRequests();
+      await loadData(false);
+      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
       alert('Failed to approve: ' + err.message);
     }
@@ -363,10 +402,32 @@ export default function RoomsPage() {
   const handleRejectRequest = async (id) => {
     try {
       await roomService.rejectBookingRequest(id, adminNoteMap[id] || '');
-      fetchRequests();
-      loadData(false);
+      setSuccessMsg('✓ Booking request rejected.');
+      syncHub.emit('ROOMS', 'BOOKING_REJECTED', { id });
+      await fetchRequests();
+      await loadData(false);
+      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
       alert('Failed to reject: ' + err.message);
+    }
+  };
+
+  const handleDeleteRequest = async (id, status) => {
+    const isApproved = status === 'APPROVED';
+    const confirmPrompt = isApproved
+      ? 'This booking was APPROVED. Deleting it will free the bed and unassign the resident. Are you sure you want to proceed?'
+      : 'Are you sure you want to delete/cancel this booking request?';
+    if (!window.confirm(confirmPrompt)) return;
+    try {
+      await roomService.deleteBookingRequest(id);
+      setSuccessMsg('✓ Booking request deleted / cancelled successfully');
+      syncHub.emit('ROOMS', 'BOOKING_DELETED', { id });
+      syncHub.emit('RESIDENTS', 'BED_FREED', { id });
+      await fetchRequests();
+      await loadData(false);
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (err) {
+      alert('Failed to delete booking request: ' + err.message);
     }
   };
   const getStatusStyles = (status) => {
@@ -408,12 +469,14 @@ export default function RoomsPage() {
         {isAdmin && (
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
             <button
-              onClick={() => loadData(true)}
+              onClick={handleRefresh}
+              disabled={refreshing}
               className="btn btn-outline"
               style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-              title="Refresh properties, rooms and bed occupancies"
+              title="Refresh properties, rooms, beds and booking requests"
             >
-              <span>🔄 Refresh</span>
+              <span style={{ display: 'inline-block', transform: refreshing ? 'rotate(180deg)' : 'none', transition: 'transform 0.5s' }}>🔄</span>
+              <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
             </button>
             <button
               onClick={() => handleOpenDatasetPicker(null)}
@@ -429,11 +492,13 @@ export default function RoomsPage() {
         )}
         {!isAdmin && (
           <button
-            onClick={() => loadData(true)}
+            onClick={handleRefresh}
+            disabled={refreshing}
             className="btn btn-outline"
             style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            🔄 Refresh
+            <span style={{ display: 'inline-block', transform: refreshing ? 'rotate(180deg)' : 'none', transition: 'transform 0.5s' }}>🔄</span>
+            <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
         )}
       </div>
@@ -800,48 +865,107 @@ export default function RoomsPage() {
                 <p>No booking requests found.</p>
              </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
-              {bookingRequests.map(req => (
-                <div key={req.id} className="card" style={{ padding: '1rem', border: '1px solid var(--border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <strong>{req.userName}</strong>
-                    <span style={{ 
-                      fontSize: '0.75rem', fontWeight: 700, padding: '0.2rem 0.6rem', borderRadius: '4px',
-                      background: req.status === 'PENDING' ? '#fef3c7' : req.status === 'APPROVED' ? '#dcfce7' : '#fee2e2',
-                      color: req.status === 'PENDING' ? '#b45309' : req.status === 'APPROVED' ? '#166534' : '#b91c1c'
-                    }}>{req.status}</span>
-                  </div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                    {req.userEmail} <br/>
-                    Room {req.roomNumber} - Bed {req.bedNumber} <br/>
-                    <div style={{ marginTop: '0.5rem', background: '#f8fafc', padding: '0.5rem', borderRadius: '4px' }}>
-                      <em>"{req.requestNote || 'No notes'}"</em>
-                    </div>
-                  </div>
-                  {req.adminNote && (
-                     <div style={{ fontSize: '0.8rem', color: '#2563eb', marginTop: '0.5rem' }}>
-                       <strong>Admin:</strong> {req.adminNote}
-                     </div>
-                  )}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.25rem' }}>
+              {bookingRequests.map(req => {
+                const requestedDate = req.requestedAt ? new Date(req.requestedAt) : null;
+                const minutesAgo = requestedDate ? Math.max(0, Math.floor((Date.now() - requestedDate.getTime()) / 60000)) : 0;
+                const isPendingOver5Min = req.status === 'PENDING' && minutesAgo >= 5;
 
-                  {isAdmin && req.status === 'PENDING' && (
-                    <div style={{ marginTop: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem' }}>
-                      <input 
-                        type="text" 
-                        placeholder="Admin Note (optional)" 
-                        className="form-control"
-                        style={{ marginBottom: '0.5rem', fontSize: '0.8rem', padding: '0.4rem' }}
-                        value={adminNoteMap[req.id] || ''}
-                        onChange={(e) => setAdminNoteMap({...adminNoteMap, [req.id]: e.target.value})}
-                      />
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.8rem', padding: '0.3rem', background: '#16a34a', border: 'none' }} onClick={() => handleApproveRequest(req.id)}>Approve</button>
-                        <button className="btn btn-primary" style={{ flex: 1, fontSize: '0.8rem', padding: '0.3rem', background: '#ef4444', border: 'none' }} onClick={() => handleRejectRequest(req.id)}>Reject</button>
+                return (
+                  <div key={req.id} className="card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.65rem' }}>
+                        <div>
+                          <strong style={{ fontSize: '1.05rem', color: 'var(--text-main)' }}>{req.userName}</strong>
+                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{req.userEmail}</div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ 
+                            fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem 0.65rem', borderRadius: '999px',
+                            background: req.status === 'PENDING' ? '#fef3c7' : req.status === 'APPROVED' ? '#dcfce7' : '#fee2e2',
+                            color: req.status === 'PENDING' ? '#b45309' : req.status === 'APPROVED' ? '#166534' : '#b91c1c'
+                          }}>{req.status}</span>
+                          {isPendingOver5Min && (
+                            <div style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 700, marginTop: '0.2rem' }}>
+                              ⚠️ Waiting {minutesAgo}m
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ padding: '0.6rem 0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
+                        <div style={{ fontWeight: 700, color: '#1d4ed8' }}>
+                          🛏️ Room {req.roomNumber} &bull; Bed {req.bedNumber}
+                        </div>
+                        {req.requestNote && (
+                          <div style={{ marginTop: '0.35rem', color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>
+                            "{req.requestNote}"
+                          </div>
+                        )}
+                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.35rem' }}>
+                          Requested: {requestedDate ? requestedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' }) : 'Recently'}
+                          {minutesAgo > 0 ? ` (${minutesAgo} mins ago)` : ' (Just now)'}
+                        </div>
+                      </div>
+
+                      {req.adminNote && (
+                         <div style={{ fontSize: '0.8rem', color: '#2563eb', marginBottom: '0.75rem', background: '#eff6ff', padding: '0.45rem 0.65rem', borderRadius: '6px' }}>
+                           <strong>Admin Note:</strong> {req.adminNote}
+                         </div>
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem' }}>
+                      {isAdmin && req.status === 'PENDING' && (
+                        <div style={{ marginBottom: '0.65rem' }}>
+                          <input 
+                            type="text" 
+                            placeholder="Admin note (e.g. Approved for semester 1)" 
+                            className="form-control"
+                            style={{ marginBottom: '0.5rem', fontSize: '0.8rem', padding: '0.4rem' }}
+                            value={adminNoteMap[req.id] || ''}
+                            onChange={(e) => setAdminNoteMap({...adminNoteMap, [req.id]: e.target.value})}
+                          />
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button 
+                              className="btn btn-primary" 
+                              style={{ flex: 1, fontSize: '0.8rem', padding: '0.4rem', background: '#16a34a', border: 'none', fontWeight: 700 }} 
+                              onClick={() => handleApproveRequest(req.id)}
+                            >
+                              ✓ Approve &amp; Activate
+                            </button>
+                            <button 
+                              className="btn btn-primary" 
+                              style={{ flex: 1, fontSize: '0.8rem', padding: '0.4rem', background: '#e11d48', border: 'none', fontWeight: 700 }} 
+                              onClick={() => handleRejectRequest(req.id)}
+                            >
+                              ✕ Reject
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Delete / Cancel Option */}
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.25rem' }}>
+                        <button
+                          onClick={() => handleDeleteRequest(req.id, req.status)}
+                          className="btn btn-outline"
+                          style={{
+                            fontSize: '0.76rem',
+                            padding: '0.3rem 0.65rem',
+                            color: req.status === 'APPROVED' ? '#dc2626' : '#64748b',
+                            borderColor: req.status === 'APPROVED' ? '#fca5a5' : '#cbd5e1',
+                            fontWeight: 600,
+                          }}
+                          title={isAdmin ? 'Delete request permanently' : 'Cancel or dismiss this request'}
+                        >
+                          🗑️ {isAdmin ? 'Delete Request' : req.status === 'PENDING' ? 'Cancel Request' : 'Dismiss'}
+                        </button>
                       </div>
                     </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

@@ -175,4 +175,16 @@ export const roomService = {
     }
     return result.data;
   },
+
+  async deleteBookingRequest(id) {
+    const response = await fetch(`${API_BASE_URL}/api/room-booking-requests/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || 'Failed to delete booking request');
+    }
+    return result.data;
+  },
 };

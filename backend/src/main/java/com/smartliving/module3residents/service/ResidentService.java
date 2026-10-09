@@ -295,12 +295,23 @@ public class ResidentService {
         roomRepository.save(room);
     }
 
+    @Transactional
     public void deleteResident(Long residentId) {
         Resident resident = residentRepository.findById(residentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resident", "id", residentId));
-        if (resident.getStatus() != ResidentStatus.CHECKED_OUT) {
-            throw new AppException("Only checked-out residents can be deleted");
+
+        // Free assigned bed if any
+        if (resident.getBed() != null) {
+            Bed bed = resident.getBed();
+            bed.setStatus(BedStatus.AVAILABLE);
+            bed.setCurrentResidentId(null);
+            bedRepository.save(bed);
+            resident.setBed(null);
+            if (bed.getRoom() != null) {
+                recalculateRoomStatus(bed.getRoom().getId());
+            }
         }
+
         residentRepository.delete(resident);
     }
 }

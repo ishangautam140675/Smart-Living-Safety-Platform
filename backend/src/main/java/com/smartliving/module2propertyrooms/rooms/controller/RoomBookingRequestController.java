@@ -65,4 +65,15 @@ public class RoomBookingRequestController {
             @PathVariable Long id, @RequestBody AdminBookingResponseDto resp) {
         return ResponseEntity.ok(ApiResponse.success("Request rejected", service.rejectRequest(id, resp)));
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RESIDENT')")
+    public ResponseEntity<ApiResponse<Void>> deleteRequest(
+            @PathVariable Long id, Authentication auth) {
+        Long userId = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found")).getId();
+        boolean isAdmin = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        service.deleteRequest(id, userId, isAdmin);
+        return ResponseEntity.ok(ApiResponse.success("Booking request deleted successfully", null));
+    }
 }
