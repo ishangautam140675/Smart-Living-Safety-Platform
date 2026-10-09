@@ -81,12 +81,7 @@ export default function EmergencyPage() {
       const created = await emergencyService.triggerSos(sosForm);
       setSuccessMsg(`🚨 EMERGENCY SOS DISPATCHED! Alert Code: ${created.alertCode}. Guards alerted immediately.`);
       setShowSosModal(false);
-      setSosForm({
-        type: 'MEDICAL',
-        severity: 'CRITICAL',
-        locationDetails: '',
-        description: ''
-      });
+      setSosForm({ type: 'MEDICAL', severity: 'CRITICAL', locationDetails: '', description: '' });
       loadData();
     } catch (err) {
       setError(err.message || 'Failed to dispatch SOS alert');
@@ -164,43 +159,35 @@ export default function EmergencyPage() {
 
   const getSeverityBadge = (severity) => {
     switch (severity) {
-      case 'CRITICAL':
-        return <span className="badge badge-danger" style={{ backgroundColor: '#dc2626', color: '#fff', animation: 'pulse 1.5s infinite' }}>CRITICAL</span>;
-      case 'HIGH':
-        return <span className="badge badge-danger" style={{ backgroundColor: '#ea580c', color: '#fff' }}>HIGH</span>;
-      case 'MEDIUM':
-        return <span className="badge badge-warning" style={{ backgroundColor: '#f59e0b', color: '#fff' }}>MEDIUM</span>;
-      case 'LOW':
-        return <span className="badge badge-neutral" style={{ backgroundColor: '#64748b', color: '#fff' }}>LOW</span>;
-      default:
-        return <span className="badge">{severity}</span>;
+      case 'CRITICAL': return <span className="badge badge-danger">CRITICAL</span>;
+      case 'HIGH':     return <span className="badge badge-danger" style={{ background: '#ea580c' }}>HIGH</span>;
+      case 'MEDIUM':   return <span className="badge badge-warning">MEDIUM</span>;
+      case 'LOW':      return <span className="badge badge-neutral">LOW</span>;
+      default:         return <span className="badge">{severity}</span>;
     }
   };
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'ACTIVE':
-        return <span className="badge badge-danger" style={{ backgroundColor: '#dc2626', color: '#fff' }}>🚨 ACTIVE</span>;
-      case 'ACKNOWLEDGED':
-        return <span className="badge badge-warning" style={{ backgroundColor: '#0284c7', color: '#fff' }}>👀 ACKNOWLEDGED</span>;
-      case 'RESOLVED':
-        return <span className="badge badge-success" style={{ backgroundColor: '#10b981', color: '#fff' }}>✅ RESOLVED</span>;
-      case 'FALSE_ALARM':
-        return <span className="badge badge-neutral" style={{ backgroundColor: '#64748b', color: '#fff' }}>⚪ FALSE ALARM</span>;
-      default:
-        return <span className="badge">{status}</span>;
+      case 'ACTIVE':       return <span className="badge badge-danger">🚨 ACTIVE</span>;
+      case 'ACKNOWLEDGED': return <span className="badge badge-mocha">👀 ACKNOWLEDGED</span>;
+      case 'RESOLVED':     return <span className="badge badge-success">✅ RESOLVED</span>;
+      case 'FALSE_ALARM':  return <span className="badge badge-neutral">⚪ FALSE ALARM</span>;
+      default:             return <span className="badge">{status}</span>;
     }
   };
 
   if (!user) {
     return (
-      <div style={{ padding: '60px 24px', maxWidth: 600, margin: '40px auto', textAlign: 'center', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🚨</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#dc2626', marginBottom: 8 }}>Emergency &amp; SOS Center</h2>
-        <p style={{ color: '#64748b', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+      <div className="card" style={{ maxWidth: 580, margin: '3.5rem auto', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div style={{ fontSize: 52, marginBottom: '1rem' }}>🚨</div>
+        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--danger)', marginBottom: '0.5rem' }}>
+          Emergency &amp; SOS Center
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
           Please sign in to trigger panic distress alerts, view active emergency incidents, or dispatch security responders.
         </p>
-        <a href="/login" style={{ display: 'inline-block', padding: '10px 24px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, backgroundColor: '#dc2626', color: '#fff' }}>
+        <a href="/login" className="btn btn-primary" style={{ display: 'inline-block', textDecoration: 'none', background: 'var(--danger)', borderColor: 'var(--danger)' }}>
           Sign In to Access
         </a>
       </div>
@@ -208,162 +195,123 @@ export default function EmergencyPage() {
   }
 
   return (
-    <div className="container" style={{ padding: '2rem 1rem' }}>
+    <div>
       {/* Page Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-            🚨 SOS &amp; Emergency Command Center
-          </h1>
-          <p style={{ margin: '0.35rem 0 0', color: 'var(--text-muted)' }}>
+          <h1 className="page-title">🚨 SOS &amp; Emergency Command</h1>
+          <p className="page-subtitle">
             {isResident
               ? 'Instant panic alarm, medical dispatch, fire warnings, and security alerts'
               : 'Real-time emergency broadcast monitoring, responder dispatch, and incident logs'}
           </p>
         </div>
-
-        <button
-          className="btn btn-primary"
-          style={{ backgroundColor: '#dc2626', borderColor: '#b91c1c', fontWeight: 700, padding: '0.6rem 1.25rem', fontSize: '1rem' }}
-          onClick={() => setShowSosModal(true)}
-        >
-          🆘 Trigger Custom SOS
-        </button>
+        <div className="page-header-actions">
+          <button
+            className="btn btn-primary"
+            style={{ background: 'var(--danger)', borderColor: 'var(--danger)', fontWeight: 700 }}
+            onClick={() => setShowSosModal(true)}
+          >
+            🆘 Trigger Custom SOS
+          </button>
+        </div>
       </div>
 
       {/* Alerts */}
       {error && (
-        <div className="alert alert-danger" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b' }}>
-          ⚠️ {error}
+        <div className="alert alert-danger" style={{ marginBottom: '1.25rem' }}>
+          <span>⚠️</span><span>{error}</span>
         </div>
       )}
       {successMsg && (
-        <div className="alert alert-success" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#dcfce7', color: '#166534' }}>
-          {successMsg}
+        <div className="alert" style={{ marginBottom: '1.25rem', background: 'var(--success-light)', color: 'var(--success)', border: '1px solid rgba(58,122,79,0.3)', display: 'flex', gap: '0.5rem', alignItems: 'center', borderRadius: 'var(--radius-md)', padding: '0.75rem 1rem' }}>
+          <span>{successMsg}</span>
         </div>
       )}
 
-      {/* Instant 1-Click Panic Bar (for Residents & Campus users) */}
-      <div className="card" style={{ padding: '1.25rem', marginBottom: '2rem', border: '2px solid #fecaca', background: '#fff5f5' }}>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: '0 0 0.5rem', color: '#991b1b' }}>
+      {/* 1-Click Panic Bar */}
+      <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem', background: 'var(--danger-light)', border: '1.5px solid rgba(184,58,45,0.25)' }}>
+        <h3 style={{ fontSize: '1rem', fontWeight: 800, margin: '0 0 0.4rem', color: 'var(--danger)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           ⚡ 1-Click Fast Emergency Dispatch
         </h3>
-        <p style={{ fontSize: '0.85rem', color: '#7f1d1d', margin: '0 0 1rem' }}>
-          Pressing any button below auto-detects your room/bed location and alerts on-duty security and campus responders immediately.
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 1.1rem', lineHeight: 1.5 }}>
+          Pressing any button auto-detects your room/bed location and alerts on-duty security and campus responders immediately.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '0.75rem' }}>
-          <button
-            className="btn btn-primary"
-            style={{ backgroundColor: '#dc2626', border: 'none', padding: '0.75rem', fontWeight: 700 }}
-            disabled={triggering}
-            onClick={() => handleInstantPanic('MEDICAL')}
-          >
-            🚑 Medical Emergency
-          </button>
-          <button
-            className="btn btn-primary"
-            style={{ backgroundColor: '#ea580c', border: 'none', padding: '0.75rem', fontWeight: 700 }}
-            disabled={triggering}
-            onClick={() => handleInstantPanic('FIRE')}
-          >
-            🔥 Fire Hazard
-          </button>
-          <button
-            className="btn btn-primary"
-            style={{ backgroundColor: '#4338ca', border: 'none', padding: '0.75rem', fontWeight: 700 }}
-            disabled={triggering}
-            onClick={() => handleInstantPanic('SECURITY_THREAT')}
-          >
-            🛡️ Security / Intruder
-          </button>
-          <button
-            className="btn btn-primary"
-            style={{ backgroundColor: '#0f172a', border: '1px solid #334155', padding: '0.75rem', fontWeight: 700 }}
-            disabled={triggering}
-            onClick={() => handleInstantPanic('SILENT_SOS')}
-          >
-            🤫 Silent / Discreet SOS
-          </button>
-          <button
-            className="btn btn-primary"
-            style={{ backgroundColor: '#be123c', border: 'none', padding: '0.75rem', fontWeight: 700 }}
-            disabled={triggering}
-            onClick={() => handleInstantPanic('HARASSMENT')}
-          >
-            ✋ Incident / Harassment
-          </button>
-          <button
-            className="btn btn-primary"
-            style={{ backgroundColor: '#b45309', border: 'none', padding: '0.75rem', fontWeight: 700 }}
-            disabled={triggering}
-            onClick={() => handleInstantPanic('GAS_LEAK')}
-          >
-            ⚠️ Gas / Chemical Leak
-          </button>
+          {[
+            { type: 'MEDICAL',         label: '🚑 Medical Emergency',    bg: 'var(--danger)' },
+            { type: 'FIRE',            label: '🔥 Fire Hazard',          bg: '#ea580c' },
+            { type: 'SECURITY_THREAT', label: '🛡️ Security / Intruder',  bg: '#4338ca' },
+            { type: 'SILENT_SOS',      label: '🤫 Silent / Discreet SOS', bg: '#0f172a' },
+            { type: 'HARASSMENT',      label: '✋ Incident / Harassment', bg: '#be123c' },
+            { type: 'GAS_LEAK',        label: '⚠️ Gas / Chemical Leak',  bg: '#b45309' },
+          ].map(({ type, label, bg }) => (
+            <button
+              key={type}
+              className="btn btn-primary"
+              style={{ background: bg, border: 'none', padding: '0.75rem', fontWeight: 700, fontSize: '0.875rem', borderRadius: 'var(--radius-md)' }}
+              disabled={triggering}
+              onClick={() => handleInstantPanic(type)}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Security Summary Cards */}
       {isSecurity && summary && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #dc2626', background: summary.activeAlerts > 0 ? '#fff1f2' : '#fff' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>ACTIVE ALERTS</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#dc2626', margin: '0.25rem 0' }}>
-              {summary.activeAlerts}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Require immediate response</div>
+        <div className="kpi-grid" style={{ marginBottom: '2rem' }}>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--danger)' }} />
+            <div className="kpi-label">ACTIVE ALERTS</div>
+            <div className="kpi-value" style={{ color: 'var(--danger)' }}>{summary.activeAlerts}</div>
+            <div className="kpi-subtext">Require immediate response</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #ea580c' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>CRITICAL SEVERITY</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#ea580c', margin: '0.25rem 0' }}>
-              {summary.criticalAlerts}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Highest priority</div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: '#ea580c' }} />
+            <div className="kpi-label">CRITICAL SEVERITY</div>
+            <div className="kpi-value" style={{ color: '#ea580c' }}>{summary.criticalAlerts}</div>
+            <div className="kpi-subtext">Highest priority</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #0284c7' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>ACKNOWLEDGED</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#0284c7', margin: '0.25rem 0' }}>
-              {summary.acknowledgedAlerts}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Responders en route</div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--palette-1)' }} />
+            <div className="kpi-label">ACKNOWLEDGED</div>
+            <div className="kpi-value" style={{ color: 'var(--palette-1)' }}>{summary.acknowledgedAlerts}</div>
+            <div className="kpi-subtext">Responders en route</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>RESOLVED TODAY</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#10b981', margin: '0.25rem 0' }}>
-              {summary.resolvedAlerts}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Completed incidents</div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--success)' }} />
+            <div className="kpi-label">RESOLVED TODAY</div>
+            <div className="kpi-value" style={{ color: 'var(--success)' }}>{summary.resolvedAlerts}</div>
+            <div className="kpi-subtext">Completed incidents</div>
           </div>
         </div>
       )}
 
       {/* Security Filter Bar */}
       {isSecurity && (
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Search by code, resident name, or location..."
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            style={{ flex: 1, minWidth: '220px', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-          />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
-          >
+        <div className="toolbar-card" style={{ marginBottom: '1.5rem' }}>
+          <div className="search-input-wrapper" style={{ flex: 1, minWidth: '220px' }}>
+            <span className="search-icon-inside">🔎</span>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search by code, resident name, or location..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              style={{ paddingLeft: '2.25rem' }}
+            />
+          </div>
+          <select className="form-control" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ minWidth: '160px', width: 'auto' }}>
             <option value="">All Statuses</option>
             <option value="ACTIVE">Active (Unresolved)</option>
             <option value="ACKNOWLEDGED">Acknowledged</option>
             <option value="RESOLVED">Resolved</option>
             <option value="FALSE_ALARM">False Alarm</option>
           </select>
-          <select
-            value={severityFilter}
-            onChange={(e) => setSeverityFilter(e.target.value)}
-            style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
-          >
+          <select className="form-control" value={severityFilter} onChange={(e) => setSeverityFilter(e.target.value)} style={{ minWidth: '150px', width: 'auto' }}>
             <option value="">All Severities</option>
             <option value="CRITICAL">Critical</option>
             <option value="HIGH">High</option>
@@ -374,125 +322,131 @@ export default function EmergencyPage() {
       )}
 
       {/* Emergency Alerts Feed Table */}
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+      <div className="table-wrapper">
         {loading ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading live feed...</div>
-        ) : alerts.length === 0 ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            🟢 No emergency alerts logged. Campus premises are secure.
+            <div style={{ fontSize: 32, marginBottom: '0.75rem' }}>⏳</div>
+            Loading live feed...
+          </div>
+        ) : alerts.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">🟢</div>
+            <div className="empty-state-title">No emergency alerts logged</div>
+            <div className="empty-state-desc">Campus premises are secure.</div>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontWeight: 600 }}>
-                  <th style={{ padding: '0.75rem 1rem' }}>Alert Code</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Emergency Type</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Location / Unit</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Caller / Resident</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Severity &amp; Status</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Time</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {alerts.map((alt) => (
-                  <tr key={alt.id} style={{ borderBottom: '1px solid #f1f5f9', background: alt.status === 'ACTIVE' ? '#fff1f2' : 'transparent' }}>
-                    <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', fontWeight: 700, color: '#dc2626' }}>
+          <table className="table-modern">
+            <thead>
+              <tr>
+                <th>Alert Code</th>
+                <th>Emergency Type</th>
+                <th>Location / Unit</th>
+                <th>Caller / Resident</th>
+                <th>Severity &amp; Status</th>
+                <th>Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {alerts.map((alt) => (
+                <tr
+                  key={alt.id}
+                  style={{
+                    background: alt.status === 'ACTIVE' ? 'var(--danger-light)' : 'transparent'
+                  }}
+                >
+                  <td>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--danger)', fontSize: '0.9rem', letterSpacing: '0.03em' }}>
                       {alt.alertCode}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ fontWeight: 700, color: '#1e293b' }}>{alt.type}</div>
-                      {alt.description && (
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', maxWidth: '240px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {alt.description}
-                        </div>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ fontWeight: 600, color: '#0f172a' }}>{alt.locationDetails}</div>
-                      {alt.roomNumber && (
-                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Room: {alt.roomNumber} ({alt.buildingName})</div>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ fontWeight: 600 }}>{alt.residentName || 'Campus Staff'}</div>
-                      {alt.residentPhone && (
-                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>📞 {alt.residentPhone}</div>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-                        {getSeverityBadge(alt.severity)}
-                        {getStatusBadge(alt.status)}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{alt.type}</div>
+                    {alt.description && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: '220px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {alt.description}
                       </div>
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', color: '#64748b' }}>
-                      <div>{new Date(alt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
-                      <div style={{ fontSize: '0.75rem' }}>{new Date(alt.createdAt).toLocaleDateString()}</div>
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {isSecurity && alt.status === 'ACTIVE' && (
-                          <button
-                            className="btn btn-outline"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', borderColor: '#0284c7', color: '#0284c7' }}
-                            onClick={() => handleAcknowledge(alt.alertCode)}
-                          >
-                            Acknowledge
-                          </button>
-                        )}
-                        {isSecurity && (alt.status === 'ACTIVE' || alt.status === 'ACKNOWLEDGED') && (
-                          <button
-                            className="btn btn-primary"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', backgroundColor: '#10b981', border: 'none' }}
-                            onClick={() => {
-                              setActiveAlertToResolve(alt);
-                              setResolveForm({ status: 'RESOLVED', notes: '' });
-                            }}
-                          >
-                            Resolve
-                          </button>
-                        )}
-                        {alt.status === 'RESOLVED' && (
-                          <button
-                            className="btn btn-outline"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#fff', backgroundColor: '#dc2626', borderColor: '#dc2626' }}
-                            onClick={() => handleDeleteAlert(alt.alertCode)}
-                          >
-                            🗑 Delete
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{alt.locationDetails}</div>
+                    {alt.roomNumber && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Room: {alt.roomNumber} ({alt.buildingName})</div>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{alt.residentName || 'Campus Staff'}</div>
+                    {alt.residentPhone && (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>📞 {alt.residentPhone}</div>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                      {getSeverityBadge(alt.severity)}
+                      {getStatusBadge(alt.status)}
+                    </div>
+                  </td>
+                  <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <div style={{ fontWeight: 600 }}>{new Date(alt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
+                    <div style={{ fontSize: '0.75rem' }}>{new Date(alt.createdAt).toLocaleDateString()}</div>
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      {isSecurity && alt.status === 'ACTIVE' && (
+                        <button
+                          className="btn btn-outline"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: 'var(--palette-1)', borderColor: 'var(--palette-2)' }}
+                          onClick={() => handleAcknowledge(alt.alertCode)}
+                        >
+                          Acknowledge
+                        </button>
+                      )}
+                      {isSecurity && (alt.status === 'ACTIVE' || alt.status === 'ACKNOWLEDGED') && (
+                        <button
+                          className="btn btn-primary"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', background: 'var(--success)', border: 'none' }}
+                          onClick={() => {
+                            setActiveAlertToResolve(alt);
+                            setResolveForm({ status: 'RESOLVED', notes: '' });
+                          }}
+                        >
+                          Resolve
+                        </button>
+                      )}
+                      {alt.status === 'RESOLVED' && (
+                        <button
+                          className="btn btn-outline"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'rgba(184,58,45,0.35)' }}
+                          onClick={() => handleDeleteAlert(alt.alertCode)}
+                        >
+                          🗑 Delete
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
       {/* Modal: Custom SOS Trigger */}
       {showSosModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '500px', padding: '1.75rem', border: '2px solid #ef4444' }}>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800, margin: '0 0 0.5rem', color: '#dc2626' }}>
-              🆘 Dispatch Emergency Alert
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem' }}>
+        <div className="modal-overlay" onClick={() => setShowSosModal(false)}>
+          <div className="modal-card" style={{ maxWidth: '500px', borderTop: '3px solid var(--danger)' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title" style={{ color: 'var(--danger)' }}>🆘 Dispatch Emergency Alert</h2>
+              <button className="modal-close-btn" onClick={() => setShowSosModal(false)}>✕</button>
+            </div>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: 1.5 }}>
               This broadcasts an immediate alert to central security and on-duty supervisors.
             </p>
 
             <form onSubmit={handleTriggerSos} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Emergency Type *</label>
-                <select
-                  required
-                  value={sosForm.type}
-                  onChange={(e) => setSosForm({ ...sosForm, type: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                >
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Emergency Type *</label>
+                <select required className="form-control" value={sosForm.type} onChange={(e) => setSosForm({ ...sosForm, type: e.target.value })}>
                   <option value="MEDICAL">🚑 Medical Emergency</option>
                   <option value="FIRE">🔥 Fire Hazard</option>
                   <option value="SECURITY_THREAT">🛡️ Security Threat / Intruder</option>
@@ -508,12 +462,8 @@ export default function EmergencyPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Severity Level</label>
-                <select
-                  value={sosForm.severity}
-                  onChange={(e) => setSosForm({ ...sosForm, severity: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                >
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Severity Level</label>
+                <select className="form-control" value={sosForm.severity} onChange={(e) => setSosForm({ ...sosForm, severity: e.target.value })}>
                   <option value="CRITICAL">🔴 Critical (Life/Property Immediate Hazard)</option>
                   <option value="HIGH">🟠 High Priority</option>
                   <option value="MEDIUM">🟡 Medium Priority</option>
@@ -521,32 +471,36 @@ export default function EmergencyPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Location (leave blank to auto-detect your room)</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Location (leave blank to auto-detect your room)</label>
                 <input
                   type="text"
+                  className="form-control"
                   placeholder="e.g. Block A 2nd Floor Corridor / Cafeteria"
                   value={sosForm.locationDetails}
                   onChange={(e) => setSosForm({ ...sosForm, locationDetails: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Situation Details</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Situation Details</label>
                 <textarea
                   rows="2"
+                  className="form-control"
                   placeholder="Describe patient condition, fire scale, or suspicious person..."
                   value={sosForm.description}
                   onChange={(e) => setSosForm({ ...sosForm, description: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                  style={{ resize: 'vertical' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setShowSosModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#dc2626', border: 'none' }} disabled={triggering}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowSosModal(false)}>Cancel</button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ background: 'var(--danger)', border: 'none', fontWeight: 700 }}
+                  disabled={triggering}
+                >
                   {triggering ? 'Broadcasting...' : 'DISPATCH SOS NOW'}
                 </button>
               </div>
@@ -557,45 +511,51 @@ export default function EmergencyPage() {
 
       {/* Modal: Resolve Incident */}
       {activeAlertToResolve && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '460px', padding: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.5rem' }}>
-              🛡️ Resolve Incident: {activeAlertToResolve.alertCode}
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem' }}>
-              Type: <strong>{activeAlertToResolve.type}</strong> at <strong>{activeAlertToResolve.locationDetails}</strong>
-            </p>
+        <div className="modal-overlay" onClick={() => setActiveAlertToResolve(null)}>
+          <div className="modal-card" style={{ maxWidth: '460px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">🛡️ Resolve Incident</h2>
+              <button className="modal-close-btn" onClick={() => setActiveAlertToResolve(null)}>✕</button>
+            </div>
+
+            <div style={{ padding: '0.25rem 0 1rem', borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
+              <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1rem', color: 'var(--danger)', marginBottom: '0.3rem' }}>
+                {activeAlertToResolve.alertCode}
+              </div>
+              <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                Type: <strong style={{ color: 'var(--text-main)' }}>{activeAlertToResolve.type}</strong> at <strong style={{ color: 'var(--text-main)' }}>{activeAlertToResolve.locationDetails}</strong>
+              </div>
+            </div>
 
             <form onSubmit={handleResolveSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Outcome Status *</label>
-                <select
-                  value={resolveForm.status}
-                  onChange={(e) => setResolveForm({ ...resolveForm, status: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                >
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Outcome Status *</label>
+                <select className="form-control" value={resolveForm.status} onChange={(e) => setResolveForm({ ...resolveForm, status: e.target.value })}>
                   <option value="RESOLVED">Resolved (Responders handled situation)</option>
                   <option value="FALSE_ALARM">False Alarm / Accidental Trigger</option>
                 </select>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Resolution Notes / Action Taken *</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Resolution Notes / Action Taken *</label>
                 <textarea
                   rows="3"
                   required
+                  className="form-control"
                   placeholder="Summarize paramedic intervention, security check, or site clearing..."
                   value={resolveForm.notes}
                   onChange={(e) => setResolveForm({ ...resolveForm, notes: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-                <button type="button" className="btn btn-outline" onClick={() => setActiveAlertToResolve(null)}>
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary" style={{ backgroundColor: '#10b981', border: 'none' }} disabled={resolving}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setActiveAlertToResolve(null)}>Cancel</button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ background: 'var(--success)', border: 'none' }}
+                  disabled={resolving}
+                >
                   {resolving ? 'Submitting...' : 'Complete & Close Alert'}
                 </button>
               </div>

@@ -106,96 +106,99 @@ export default function DashboardPage() {
       {/* User Welcome Banner */}
       {isAuthenticated && user ? (
         <div style={{
-          background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-          borderRadius: '20px',
-          padding: '2rem 2.5rem',
-          marginBottom: '2rem',
+          background: 'linear-gradient(135deg, #241c17 0%, #382a22 50%, #1c1511 100%)',
+          borderRadius: '22px',
+          padding: '2.25rem 2.75rem',
+          marginBottom: '2.5rem',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '1.5rem',
-          boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.25)',
+          gap: '1.75rem',
+          boxShadow: '0 16px 36px -8px rgba(36, 28, 23, 0.45)',
+          border: '1px solid rgba(207, 173, 148, 0.2)',
           color: '#ffffff'
         }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.5rem' }}>
-              <span style={{ fontSize: '1.8rem' }}>👋</span>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '0.65rem', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '2rem' }}>👋</span>
+              <h2 style={{ fontSize: '1.85rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.025em' }}>
                 Welcome back, {user.fullName}
               </h2>
               {user.roles?.map(r => (
                 <span
                   key={r}
                   style={{
-                    backgroundColor: 'rgba(59, 130, 246, 0.25)',
-                    color: '#93c5fd',
-                    border: '1px solid rgba(147, 197, 253, 0.3)',
-                    padding: '0.2rem 0.65rem',
-                    borderRadius: '20px',
+                    backgroundColor: 'rgba(207, 173, 148, 0.16)',
+                    color: '#e4cba7',
+                    border: '1px solid rgba(228, 203, 167, 0.35)',
+                    padding: '0.25rem 0.75rem',
+                    borderRadius: '999px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
+                    letterSpacing: '0.04em'
                   }}
                 >
                   {r.replace('ROLE_', '')}
                 </span>
               ))}
             </div>
-            <p style={{ color: '#94a3b8', fontSize: '0.92rem', margin: 0 }}>
-              Account: <strong>{user.email}</strong> &bull; Authenticated via Spring Security JWT &bull; Active Role: <strong>{primaryRole.replace('ROLE_', '')}</strong>
+            <p style={{ color: '#cfad94', fontSize: '0.94rem', margin: 0, lineHeight: 1.5 }}>
+              Account: <strong style={{ color: '#fffbea' }}>{user.email}</strong> &bull; Authenticated via Spring Security JWT &bull; Active Scope: <strong style={{ color: '#fffbea' }}>{primaryRole.replace('ROLE_', '')}</strong>
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <Link to="/analytics" className="btn btn-outline" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
+          <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
+            <Link to="/analytics" className="btn btn-outline" style={{ background: 'rgba(255,255,255,0.08)', color: '#fffbea', border: '1px solid rgba(228, 203, 167, 0.3)' }}>
               📊 Executive Reports
             </Link>
-            <button onClick={handleLogout} className="btn" style={{ background: '#dc2626', color: '#fff', border: 'none' }}>
+            <button onClick={handleLogout} className="btn" style={{ background: 'var(--danger)', color: '#ffffff', border: 'none', padding: '0.62rem 1.25rem', borderRadius: 'var(--radius-md)', fontWeight: 600, cursor: 'pointer' }}>
               Sign Out
             </button>
           </div>
         </div>
       ) : (
         <div style={{
-          background: '#eff6ff',
-          border: '1px solid #bfdbfe',
-          borderRadius: '16px',
-          padding: '1.75rem 2rem',
-          marginBottom: '2rem',
+          background: 'var(--bg-subtle)',
+          border: '1px solid var(--border)',
+          borderRadius: '18px',
+          padding: '2rem 2.25rem',
+          marginBottom: '2.5rem',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           flexWrap: 'wrap',
-          gap: '1rem'
+          gap: '1.25rem',
+          boxShadow: 'var(--shadow-sm)'
         }}>
           <div>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#1e40af', margin: '0 0 0.25rem' }}>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 0.35rem', letterSpacing: '-0.02em' }}>
               Guest Role Preview Mode
             </h3>
-            <p style={{ color: '#3b82f6', fontSize: '0.92rem', margin: 0 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.94rem', margin: 0 }}>
               You are exploring the role portals in preview mode. Sign in with administrative or resident credentials to access personal dashboards.
             </p>
           </div>
-          <Link to="/login" className="btn btn-primary" style={{ fontWeight: 700 }}>
+          <Link to="/login" className="btn btn-primary" style={{ fontWeight: 700, padding: '0.75rem 1.75rem' }}>
             Sign In Now &rarr;
           </Link>
         </div>
       )}
 
       {/* Role Dashboard Cards */}
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.35rem' }}>
+      <div style={{ marginBottom: '2rem' }}>
+        <h3 style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 0.45rem', letterSpacing: '-0.025em' }}>
           Role-Based Access Control Portals
         </h3>
-        <p style={{ color: '#64748b', fontSize: '0.92rem', margin: 0 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.96rem', margin: 0 }}>
           Modules are configured and secured according to authenticated permission scopes:
         </p>
       </div>
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '1.5rem'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 1fr))',
+        gap: '1.75rem'
       }}>
         {roles.map((r) => {
           const isUserCurrentRole = isAuthenticated && user?.roles?.includes(r.key);
@@ -204,61 +207,66 @@ export default function DashboardPage() {
             <div
               key={r.key}
               style={{
-                background: '#ffffff',
-                borderRadius: '16px',
-                padding: '1.75rem',
-                border: isUserCurrentRole ? '2px solid #2563eb' : '1px solid #e2e8f0',
-                boxShadow: isUserCurrentRole ? '0 10px 25px -5px rgba(37, 99, 235, 0.15)' : '0 4px 6px -1px rgba(0,0,0,0.03)',
+                background: 'var(--bg-surface)',
+                borderRadius: '18px',
+                padding: '2rem 1.85rem',
+                border: isUserCurrentRole ? '2px solid var(--palette-1)' : '1px solid var(--border)',
+                boxShadow: isUserCurrentRole ? 'var(--shadow-warm-glow)' : 'var(--shadow-sm)',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                position: 'relative'
+                position: 'relative',
+                transition: 'all 0.22s cubic-bezier(0.16, 1, 0.3, 1)'
               }}
             >
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '2rem' }}>{r.icon}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <span style={{ fontSize: '2.2rem' }}>{r.icon}</span>
                   {isUserCurrentRole ? (
                     <span style={{
-                      background: '#2563eb',
+                      background: 'linear-gradient(135deg, var(--palette-1) 0%, #8c664d 100%)',
                       color: '#ffffff',
                       fontSize: '0.72rem',
-                      fontWeight: 700,
-                      padding: '3px 10px',
-                      borderRadius: '20px'
+                      fontWeight: 800,
+                      padding: '4px 12px',
+                      borderRadius: '999px',
+                      letterSpacing: '0.04em',
+                      boxShadow: '0 2px 8px rgba(174, 140, 116, 0.35)'
                     }}>
                       Current Role
                     </span>
                   ) : (
                     <span style={{
-                      background: '#f1f5f9',
-                      color: '#475569',
+                      background: 'var(--bg-subtle)',
+                      color: 'var(--palette-1)',
                       fontSize: '0.72rem',
-                      fontWeight: 700,
-                      padding: '3px 8px',
-                      borderRadius: '6px'
+                      fontWeight: 800,
+                      padding: '4px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border)',
+                      letterSpacing: '0.03em'
                     }}>
                       {r.badge}
                     </span>
                   )}
                 </div>
 
-                <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.35rem' }}>
+                <h4 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 0.45rem', letterSpacing: '-0.02em' }}>
                   {r.title}
                 </h4>
-                <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.25rem', lineHeight: 1.4 }}>
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1.5rem', lineHeight: 1.5 }}>
                   {r.desc}
                 </p>
 
-                <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1rem', marginBottom: '1.5rem' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
+                <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '1.15rem', marginBottom: '1.75rem' }}>
+                  <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--palette-1)', textTransform: 'uppercase', marginBottom: '0.65rem', letterSpacing: '0.06em' }}>
                     Core Capabilities
                   </div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.84rem' }}>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.85rem' }}>
                     {r.features.map((feat, idx) => (
-                      <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', color: '#334155' }}>
-                        <span style={{ color: '#10b981', fontWeight: 800 }}>✓</span>
-                        <span>{feat}</span>
+                      <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', color: 'var(--text-main)' }}>
+                        <span style={{ color: 'var(--success)', fontWeight: 800, fontSize: '0.9rem' }}>✓</span>
+                        <span style={{ lineHeight: 1.45 }}>{feat}</span>
                       </li>
                     ))}
                   </ul>
@@ -267,14 +275,13 @@ export default function DashboardPage() {
 
               <Link
                 to={r.quickLink}
-                className="btn btn-outline"
+                className={isUserCurrentRole ? 'btn btn-primary' : 'btn btn-outline'}
                 style={{
                   width: '100%',
-                  fontSize: '0.85rem',
+                  fontSize: '0.88rem',
                   fontWeight: 700,
-                  borderColor: isUserCurrentRole ? '#2563eb' : '#cbd5e1',
-                  color: isUserCurrentRole ? '#2563eb' : '#1e293b',
-                  background: isUserCurrentRole ? '#eff6ff' : '#ffffff'
+                  padding: '0.75rem',
+                  borderRadius: 'var(--radius-md)'
                 }}
               >
                 {r.quickLabel} &rarr;

@@ -477,48 +477,48 @@ export default function ResidentsPage() {
       {summary && (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-          gap: '1rem',
-          marginBottom: '2rem',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+          gap: '1.25rem',
+          marginBottom: '2.25rem',
         }}>
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div className="card" style={{ padding: '1.5rem', marginBottom: 0 }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Total Residents
             </span>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '2.1rem', fontWeight: 800, marginTop: '0.35rem', color: 'var(--text-main)', letterSpacing: '-0.02em', lineHeight: 1 }}>
               {summary.totalResidents}
             </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Registered accounts</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.35rem', display: 'block' }}>Registered accounts</span>
           </div>
 
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <span style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div className="card" style={{ padding: '1.5rem', marginBottom: 0 }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--success)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Active Residents
             </span>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#16a34a', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--success)', marginTop: '0.35rem', letterSpacing: '-0.02em', lineHeight: 1 }}>
               {summary.activeResidents}
             </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Currently staying</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.35rem', display: 'block' }}>Currently staying</span>
           </div>
 
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <span style={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div className="card" style={{ padding: '1.5rem', marginBottom: 0 }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--palette-1)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Beds Allocated
             </span>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#2563eb', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--palette-1)', marginTop: '0.35rem', letterSpacing: '-0.02em', lineHeight: 1 }}>
               {summary.allocatedBedsCount}
             </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Occupied beds</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.35rem', display: 'block' }}>Occupied beds</span>
           </div>
 
-          <div className="card" style={{ padding: '1.25rem' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
+          <div className="card" style={{ padding: '1.5rem', marginBottom: 0 }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
               Checked Out
             </span>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#64748b', marginTop: '0.25rem' }}>
+            <div style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--text-muted)', marginTop: '0.35rem', letterSpacing: '-0.02em', lineHeight: 1 }}>
               {summary.checkedOutResidents}
             </div>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Past admissions</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.35rem', display: 'block' }}>Past admissions</span>
           </div>
         </div>
       )}
@@ -710,37 +710,37 @@ export default function ResidentsPage() {
             justifyContent: 'space-between',
             flexWrap: 'wrap',
             gap: '1rem',
-            marginBottom: '1.5rem',
-            padding: '1rem',
-            background: 'white',
+            marginBottom: '1.75rem',
+            padding: '1.15rem 1.35rem',
+            background: 'var(--bg-surface)',
             border: '1px solid var(--border)',
-            borderRadius: '0.5rem',
+            borderRadius: '16px',
+            boxShadow: 'var(--shadow-sm)'
           }}>
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', flex: 1 }}>
+            <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', flex: 1 }}>
               <input
                 type="text"
                 placeholder="🔍 Search resident by name, email, admission #..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                className="form-control"
                 style={{
                   minWidth: '260px',
                   flex: 1,
-                  padding: '0.45rem 0.75rem',
-                  border: '1px solid var(--border)',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.85rem',
+                  padding: '0.55rem 0.95rem',
+                  fontSize: '0.88rem',
                 }}
               />
 
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
+                className="form-control"
                 style={{
-                  padding: '0.45rem 0.75rem',
-                  border: '1px solid var(--border)',
-                  borderRadius: '0.375rem',
-                  fontSize: '0.85rem',
-                  background: 'white',
+                  width: 'auto',
+                  minWidth: '160px',
+                  padding: '0.55rem 0.95rem',
+                  fontSize: '0.88rem',
                 }}
               >
                 <option value="">All Statuses</option>
@@ -750,32 +750,32 @@ export default function ResidentsPage() {
               </select>
             </div>
 
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
               Total: <strong>{residents.length}</strong> residents
             </span>
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+            <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
               Loading resident records...
             </div>
           ) : residents.length === 0 ? (
-            <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
+            <div className="card" style={{ textAlign: 'center', padding: '3.5rem' }}>
               <h4>No residents found.</h4>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginTop: '0.5rem' }}>
                 Use the "Onboard New Resident" button above to add residents.
               </p>
             </div>
           ) : (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-              gap: '1.25rem',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(330px, 1fr))',
+              gap: '1.5rem',
             }}>
               {residents.map((r) => {
                 const isActive = r.status === 'ACTIVE';
-                const statusColor = isActive ? '#16a34a' : '#64748b';
-                const statusBg = isActive ? '#f0fdf4' : '#f1f5f9';
+                const statusColor = isActive ? 'var(--success)' : 'var(--text-muted)';
+                const statusBg = isActive ? 'var(--success-light)' : 'var(--bg-subtle)';
 
                 return (
                   <div
@@ -786,12 +786,14 @@ export default function ResidentsPage() {
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
+                      padding: '1.6rem 1.65rem',
+                      marginBottom: 0,
                     }}
                   >
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.85rem' }}>
                         <div>
-                          <h4 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{r.fullName}</h4>
+                          <h4 style={{ fontSize: '1.22rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em', marginBottom: '0.2rem' }}>{r.fullName}</h4>
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                             Admission #{r.admissionNumber}
                           </span>
@@ -800,35 +802,37 @@ export default function ResidentsPage() {
                         <span style={{
                           backgroundColor: statusBg,
                           color: statusColor,
-                          padding: '0.2rem 0.6rem',
+                          padding: '0.25rem 0.75rem',
                           borderRadius: '9999px',
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          border: `1px solid ${isActive ? 'rgba(58,122,79,0.3)' : 'var(--border)'}`,
+                          letterSpacing: '0.03em'
                         }}>
                           {r.status}
                         </span>
                       </div>
 
                       <div style={{
-                        padding: '0.6rem 0.75rem',
-                        backgroundColor: '#f8fafc',
-                        borderRadius: '0.375rem',
-                        marginBottom: '0.75rem',
-                        fontSize: '0.85rem',
-                        border: '1px solid #e2e8f0',
+                        padding: '0.75rem 0.95rem',
+                        backgroundColor: 'var(--bg-subtle)',
+                        borderRadius: '10px',
+                        marginBottom: '0.95rem',
+                        fontSize: '0.86rem',
+                        border: '1px solid var(--border)',
                       }}>
-                        <div style={{ color: '#1d4ed8', fontWeight: 700 }}>
+                        <div style={{ color: 'var(--palette-1)', fontWeight: 800 }}>
                           🛏️ {r.roomNumber ? `Room ${r.roomNumber} - Bed ${r.bedNumber}` : 'No Bed Assigned'}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                           {r.buildingName || 'Main Block'} &bull; Rent: ₹{r.monthlyRent?.toLocaleString()}/mo
                         </div>
                       </div>
 
-                      <div style={{ fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', color: '#334155' }}>
+                      <div style={{ fontSize: '0.86rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', color: 'var(--text-muted)' }}>
                         <div>✉️ {r.email}</div>
                         <div>📞 {r.phone}</div>
-                        <div>🚨 Emergency: <strong>{r.emergencyContactName}</strong> ({r.emergencyContactPhone})</div>
+                        <div>🚨 Emergency: <strong style={{ color: 'var(--text-main)' }}>{r.emergencyContactName}</strong> ({r.emergencyContactPhone})</div>
                       </div>
                     </div>
 

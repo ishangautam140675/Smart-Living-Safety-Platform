@@ -2,54 +2,33 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../Module1-Authentication/AuthContext';
 import { analyticsService } from './analyticsService';
 
-function MetricCard({ title, value, subtext, icon, trend, color = '#3b82f6', bgLight = '#eff6ff' }) {
+function MetricCard({ title, value, subtext, icon, trend, stripeColor = 'var(--palette-1)' }) {
   return (
-    <div style={{
-      background: '#fff',
-      borderRadius: 14,
-      padding: '1.25rem 1.5rem',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-      border: '1px solid #e5e7eb',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 4,
-        background: color
-      }} />
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+    <div className="kpi-card">
+      <div className="kpi-card-stripe" style={{ background: stripeColor }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.65rem' }}>
         <div>
-          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-            {title}
-          </span>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#111827', marginTop: '0.25rem' }}>
-            {value}
-          </div>
+          <div className="kpi-label">{title}</div>
+          <div className="kpi-value" style={{ margin: '0.25rem 0' }}>{value}</div>
         </div>
         <div style={{
-          width: 44,
-          height: 44,
-          borderRadius: 12,
-          background: bgLight,
+          width: 42,
+          height: 42,
+          borderRadius: 'var(--radius-md)',
+          background: 'var(--palette-4)',
+          border: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '1.4rem'
+          fontSize: '1.35rem'
         }}>
           {icon}
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
-        <span style={{ color: '#4b5563' }}>{subtext}</span>
+        <span className="kpi-subtext" style={{ margin: 0 }}>{subtext}</span>
         {trend && (
-          <span style={{ fontWeight: 700, color: trend.startsWith('+') || trend.includes('100') ? '#059669' : '#d97706' }}>
+          <span style={{ fontWeight: 700, color: trend.startsWith('+') || trend.includes('100') || trend.includes('Normal') ? 'var(--success)' : 'var(--palette-1)' }}>
             {trend}
           </span>
         )}
@@ -61,10 +40,10 @@ function MetricCard({ title, value, subtext, icon, trend, color = '#3b82f6', bgL
 function SectionHeader({ title, subtitle, icon }) {
   return (
     <div style={{ margin: '2rem 0 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-      <span style={{ fontSize: '1.5rem' }}>{icon}</span>
+      <span style={{ fontSize: '1.4rem' }}>{icon}</span>
       <div>
-        <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1f2937' }}>{title}</h3>
-        {subtitle && <p style={{ margin: '0.15rem 0 0', fontSize: '0.85rem', color: '#6b7280' }}>{subtitle}</p>}
+        <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>{title}</h3>
+        {subtitle && <p style={{ margin: '0.15rem 0 0', fontSize: '0.84rem', color: 'var(--text-muted)' }}>{subtitle}</p>}
       </div>
     </div>
   );
@@ -96,14 +75,18 @@ export default function AnalyticsReportsPage() {
 
   if (!user) {
     return (
-      <div className="container" style={{ padding: '3rem 1rem', textAlign: 'center' }}>
-        <div style={{ maxWidth: 420, margin: '0 auto', background: '#fff', borderRadius: 16, padding: '2.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-          <div style={{ fontSize: '3.5rem', marginBottom: '1rem' }}>📊</div>
-          <h2 style={{ fontSize: '1.4rem', marginBottom: '0.5rem' }}>Admin Access Required</h2>
-          <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>
-            Module 12 Executive Analytics is restricted to community administrators. Please sign in with administrative credentials.
-          </p>
-          <a href="/login" className="btn btn-primary">Sign In to View Reports</a>
+      <div className="card" style={{ maxWidth: 580, margin: '3.5rem auto', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📊</div>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+          Admin Access Required
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
+          Module 12 Executive Analytics is restricted to community administrators. Please sign in with administrative credentials.
+        </p>
+        <div>
+          <a href="/login" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+            Sign In to View Reports
+          </a>
         </div>
       </div>
     );
@@ -126,51 +109,80 @@ export default function AnalyticsReportsPage() {
   };
 
   return (
-    <div className="container" style={{ padding: '2rem 1rem 4rem' }}>
-      {/* Top Banner */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        flexWrap: 'wrap',
-        gap: '1rem',
-        marginBottom: '2rem',
-        background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-        color: '#fff',
-        padding: '2rem',
-        borderRadius: 16,
-        boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.3)'
-      }}>
-        <div>
-          <div style={{ display: 'inline-block', background: 'rgba(255,255,255,0.15)', padding: '0.25rem 0.75rem', borderRadius: 20, fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-            🏢 Module 12 — Platform Intelligence &amp; Reports
+    <div>
+      {/* Top Banner with Warm Luxury Theme */}
+      <div
+        className="card"
+        style={{
+          background: 'linear-gradient(135deg, #3d2f24 0%, #241c15 100%)',
+          color: 'var(--palette-4)',
+          padding: '2.25rem 2rem',
+          borderRadius: 'var(--radius-xl)',
+          boxShadow: 'var(--shadow-xl)',
+          marginBottom: '2rem',
+          border: '1px solid rgba(174,140,116,0.3)'
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.25rem' }}>
+          <div>
+            <div
+              style={{
+                display: 'inline-block',
+                background: 'rgba(228,203,167,0.18)',
+                color: 'var(--palette-3)',
+                padding: '0.3rem 0.85rem',
+                borderRadius: 'var(--radius-full)',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                letterSpacing: '0.04em',
+                marginBottom: '0.85rem',
+                border: '1px solid rgba(228,203,167,0.3)'
+              }}
+            >
+              🏢 Module 12 — Platform Intelligence &amp; Reports
+            </div>
+            <h1 style={{ margin: 0, fontSize: '1.95rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>
+              Executive Management Dashboard
+            </h1>
+            <p style={{ margin: '0.6rem 0 0', color: 'var(--palette-2)', maxWidth: 660, fontSize: '0.94rem', lineHeight: 1.6 }}>
+              Real-time telemetry and unified cross-module intelligence aggregated across properties, residents, finances, mess, security, and staff operations.
+            </p>
           </div>
-          <h1 style={{ margin: 0, fontSize: '1.85rem', fontWeight: 800 }}>Executive Management Dashboard</h1>
-          <p style={{ margin: '0.5rem 0 0', color: '#94a3b8', maxWidth: 650, fontSize: '0.95rem' }}>
-            Real-time telemetry and unified cross-module intelligence aggregated across properties, residents, finances, mess, security, and staff operations.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button onClick={loadData} className="btn" style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
-            🔄 Refresh
-          </button>
-          <button onClick={exportReport} className="btn btn-outline" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}>
-            📥 Export JSON
-          </button>
-          <button onClick={exportPdfReport} className="btn btn-primary" style={{ background: '#dc2626', border: 'none', fontWeight: 700 }}>
-            📄 Export PDF Report
-          </button>
+          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={loadData}
+              className="btn btn-outline"
+              style={{ background: 'rgba(255,255,255,0.08)', color: '#fff', borderColor: 'rgba(255,255,255,0.2)' }}
+            >
+              <span>🔄</span> Refresh
+            </button>
+            <button
+              onClick={exportReport}
+              className="btn btn-outline"
+              style={{ background: 'rgba(255,255,255,0.12)', color: '#fff', borderColor: 'rgba(255,255,255,0.25)' }}
+            >
+              <span>📥</span> Export JSON
+            </button>
+            <button
+              onClick={exportPdfReport}
+              className="btn btn-primary"
+              style={{ fontWeight: 700 }}
+            >
+              <span>📄</span> Export PDF
+            </button>
+          </div>
         </div>
       </div>
 
       {error && (
         <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>
-          ⚠️ {error}
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
 
       {loading && (
-        <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '4rem 1rem', color: 'var(--text-muted)' }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
           Loading cross-module intelligence...
         </div>
@@ -184,15 +196,14 @@ export default function AnalyticsReportsPage() {
             subtitle="Modules 2 &amp; 3 — Properties, Rooms, Beds & Resident Allocations"
             icon="🏠"
           />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+          <div className="kpi-grid">
             <MetricCard
               title="Occupancy Rate"
               value={`${data.occupancyPercent}%`}
               subtext={`${data.occupiedRooms} occupied / ${data.totalRooms} total rooms`}
               trend={`${data.availableRooms} vacant`}
               icon="🛏️"
-              color="#3b82f6"
-              bgLight="#eff6ff"
+              stripeColor="var(--palette-1)"
             />
             <MetricCard
               title="Active Residents"
@@ -200,16 +211,15 @@ export default function AnalyticsReportsPage() {
               subtext={`Total registered: ${data.totalResidents}`}
               trend="100% Onboarded"
               icon="👥"
-              color="#10b981"
-              bgLight="#ecfdf5"
+              stripeColor="var(--success)"
             />
             <MetricCard
               title="Available Units"
               value={data.availableRooms}
               subtext="Ready for new allocations"
+              trend="Available"
               icon="🔑"
-              color="#6366f1"
-              bgLight="#eef2ff"
+              stripeColor="var(--palette-2)"
             />
           </div>
 
@@ -219,31 +229,30 @@ export default function AnalyticsReportsPage() {
             subtitle="Module 6 — Invoices, Gateways, Ledger & Outstanding Arrears"
             icon="💳"
           />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+          <div className="kpi-grid">
             <MetricCard
               title="Collection Efficiency"
               value={`${data.collectionRate}%`}
-              subtext={`₹${data.totalCollected.toLocaleString()} of ₹${data.totalInvoiced.toLocaleString()}`}
+              subtext={`₹${data.totalCollected?.toLocaleString()} of ₹${data.totalInvoiced?.toLocaleString()}`}
               trend="Target: 95%"
               icon="📈"
-              color="#059669"
-              bgLight="#d1fae5"
+              stripeColor="var(--success)"
             />
             <MetricCard
               title="Total Revenue Collected"
-              value={`₹${data.totalCollected.toLocaleString()}`}
+              value={`₹${data.totalCollected?.toLocaleString()}`}
               subtext="Audited payments via bank & gateway"
+              trend="Verified"
               icon="💰"
-              color="#0284c7"
-              bgLight="#e0f2fe"
+              stripeColor="var(--palette-1)"
             />
             <MetricCard
               title="Outstanding Receivables"
-              value={`₹${(data.totalInvoiced - data.totalCollected).toLocaleString()}`}
+              value={`₹${(data.totalInvoiced - data.totalCollected)?.toLocaleString()}`}
               subtext="Pending / partially paid dues"
+              trend="Pending"
               icon="🧾"
-              color="#d97706"
-              bgLight="#fef3c7"
+              stripeColor="var(--warning)"
             />
           </div>
 
@@ -253,15 +262,14 @@ export default function AnalyticsReportsPage() {
             subtitle="Modules 4 &amp; 9 — Complaint Resolution & Daily Mess Dining"
             icon="🛠️"
           />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+          <div className="kpi-grid">
             <MetricCard
               title="SLA Resolution Rate"
               value={`${data.complaintResolutionRate}%`}
               subtext={`${data.resolvedComplaints} solved / ${data.totalComplaints} tickets`}
               trend={data.openComplaints > 0 ? `${data.openComplaints} in progress` : 'Zero backlog'}
               icon="✅"
-              color="#8b5cf6"
-              bgLight="#f5f3ff"
+              stripeColor="var(--palette-2)"
             />
             <MetricCard
               title="Food &amp; Mess Rating"
@@ -269,16 +277,15 @@ export default function AnalyticsReportsPage() {
               subtext={`${data.totalMenuItems} scheduled menu items`}
               trend="Audited Daily"
               icon="🍲"
-              color="#f59e0b"
-              bgLight="#fffbeb"
+              stripeColor="var(--palette-1)"
             />
             <MetricCard
               title="Open Grievances"
               value={data.openComplaints}
               subtext="Awaiting technician closure"
+              trend={data.openComplaints === 0 ? 'Clear' : 'Pending'}
               icon="⏳"
-              color="#ef4444"
-              bgLight="#fee2e2"
+              stripeColor={data.openComplaints > 0 ? 'var(--danger)' : 'var(--success)'}
             />
           </div>
 
@@ -288,15 +295,14 @@ export default function AnalyticsReportsPage() {
             subtitle="Modules 5, 7, 8, 10 &amp; 11 — SOS Triggers, Guard Rosters, Assets & Visitors"
             icon="🛡️"
           />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+          <div className="kpi-grid">
             <MetricCard
               title="Emergency SOS Alerts"
               value={data.totalSosAlerts}
               subtext={`${data.unresolvedSos} active emergencies`}
               trend={data.unresolvedSos === 0 ? 'Normal / Secure' : '⚠️ Action Needed'}
               icon="🚨"
-              color={data.unresolvedSos > 0 ? '#dc2626' : '#16a34a'}
-              bgLight={data.unresolvedSos > 0 ? '#fee2e2' : '#f0fdf4'}
+              stripeColor={data.unresolvedSos > 0 ? 'var(--danger)' : 'var(--success)'}
             />
             <MetricCard
               title="Guard Shifts Today"
@@ -304,16 +310,15 @@ export default function AnalyticsReportsPage() {
               subtext={`${data.activeShifts} currently on patrol`}
               trend={`${data.incidentsToday} incidents`}
               icon="👮"
-              color="#4f46e5"
-              bgLight="#eef2ff"
+              stripeColor="var(--palette-1)"
             />
             <MetricCard
               title="Visitors Expected Today"
               value={data.visitorsToday}
               subtext={`Cumulative: ${data.totalVisitors} gate passes`}
+              trend="Logged"
               icon="🎫"
-              color="#0d9488"
-              bgLight="#f0fdfa"
+              stripeColor="var(--palette-2)"
             />
             <MetricCard
               title="Inventory Health"
@@ -321,17 +326,16 @@ export default function AnalyticsReportsPage() {
               subtext={`${data.damagedAssets} flagged for replacement`}
               trend={data.damagedAssets === 0 ? '100% Operational' : 'Audit Pending'}
               icon="📦"
-              color="#d97706"
-              bgLight="#fffbeb"
+              stripeColor="var(--warning)"
             />
           </div>
 
           {/* Module Ecosystem Health Checklist */}
-          <div style={{ marginTop: '3rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 1rem', fontSize: '1.2rem', fontWeight: 700, color: '#1e293b' }}>
+          <div className="card" style={{ marginTop: '2.5rem', padding: '1.75rem 2rem' }}>
+            <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>
               🌐 Platform Architecture &amp; Module Directory
             </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '0.85rem' }}>
               {[
                 { id: 'M01', name: 'Authentication & RBAC', status: 'Active (JWT + Spring Security)' },
                 { id: 'M02', name: 'Properties, Rooms & Beds', status: 'Active (Auto Bed Allocation)' },
@@ -345,14 +349,25 @@ export default function AnalyticsReportsPage() {
                 { id: 'M10', name: 'Inventory & Asset Audit', status: 'Active (Condition Tracking)' },
                 { id: 'M11', name: 'Staff & Guard Shift Roster', status: 'Active (Patrol Checkpoints)' },
                 { id: 'M12', name: 'Platform Intelligence & KPIs', status: 'Active (Executive Reporting)' },
-              ].map(mod => (
-                <div key={mod.id} style={{ background: '#fff', padding: '0.85rem 1rem', borderRadius: 10, border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <span style={{ background: '#e0f2fe', color: '#0369a1', fontWeight: 800, fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: 6 }}>
+              ].map((mod) => (
+                <div
+                  key={mod.id}
+                  style={{
+                    background: 'var(--bg-subtle)',
+                    padding: '0.85rem 1rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid var(--border)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem'
+                  }}
+                >
+                  <span className="badge badge-mocha" style={{ fontWeight: 800 }}>
                     {mod.id}
                   </span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: '#111827' }}>{mod.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#059669', fontWeight: 500 }}>● {mod.status}</div>
+                    <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text-main)' }}>{mod.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600 }}>● {mod.status}</div>
                   </div>
                 </div>
               ))}

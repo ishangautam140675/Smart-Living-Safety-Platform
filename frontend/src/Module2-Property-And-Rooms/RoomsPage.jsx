@@ -486,7 +486,7 @@ export default function RoomsPage() {
             <button
               onClick={() => handleOpenDatasetPicker(null)}
               className="btn btn-outline"
-              style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid #3b82f6', color: '#2563eb' }}
+              style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', border: '1px solid var(--palette-2)', color: 'var(--palette-1)', background: 'var(--bg-subtle)' }}
             >
               <span>🖼️ Open Photo Dataset ({ROOM_IMAGE_DATASET.length}+ Photos)</span>
             </button>
@@ -509,10 +509,10 @@ export default function RoomsPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '2px solid var(--border)' }}>
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.75rem', borderBottom: '2px solid var(--border)' }}>
         <button
           onClick={() => setActiveTab('rooms')}
-          style={{ padding: '0.75rem 1.5rem', background: 'none', border: 'none', borderBottom: activeTab === 'rooms' ? '3px solid var(--primary)' : '3px solid transparent', color: activeTab === 'rooms' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: activeTab === 'rooms' ? 800 : 600, fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s' }}
+          style={{ padding: '0.85rem 1.75rem', background: 'none', border: 'none', borderBottom: activeTab === 'rooms' ? '3px solid var(--primary)' : '3px solid transparent', color: activeTab === 'rooms' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: activeTab === 'rooms' ? 800 : 600, fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s' }}
         >
           🏨 Rooms & Beds
         </button>
@@ -520,7 +520,7 @@ export default function RoomsPage() {
           <button
             onClick={() => setActiveTab('requests')}
             style={{
-              padding: '0.75rem 1.5rem',
+              padding: '0.85rem 1.75rem',
               background: 'none',
               border: 'none',
               borderBottom: activeTab === 'requests' ? '3px solid var(--primary)' : '3px solid transparent',
@@ -567,32 +567,32 @@ export default function RoomsPage() {
             <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>⚠️ {error}</div>
           )}
           {successMsg && (
-            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', padding: '0.75rem 1rem', borderRadius: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', color: '#166534', padding: '0.85rem 1.25rem', borderRadius: '12px', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
               {successMsg}
             </div>
           )}
 
           {/* ── KPI Metrics ───────────────────────────────────────────────── */}
           {summary && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '1.25rem', marginBottom: '2.25rem' }}>
               {[
                 { label: 'Total Rooms', value: summary.totalRooms, sub: `${summary.totalProperties} properties`, color: 'var(--text-main)' },
                 { label: 'Total Beds', value: summary.totalBeds, sub: 'Total capacity', color: 'var(--text-main)' },
-                { label: 'Available Beds', value: summary.availableBeds, sub: 'Ready to book', color: '#16a34a' },
-                { label: 'Occupied Beds', value: summary.occupiedBeds, sub: 'Active residents', color: '#2563eb' },
-                { label: 'Occupancy Rate', value: `${summary.occupancyRate.toFixed(1)}%`, sub: null, color: '#7c3aed', isBar: true, rate: summary.occupancyRate },
+                { label: 'Available Beds', value: summary.availableBeds, sub: 'Ready to book', color: 'var(--success)' },
+                { label: 'Occupied Beds', value: summary.occupiedBeds, sub: 'Active residents', color: 'var(--palette-1)' },
+                { label: 'Occupancy Rate', value: `${summary.occupancyRate.toFixed(1)}%`, sub: null, color: 'var(--palette-1)', isBar: true, rate: summary.occupancyRate },
               ].map((kpi, i) => (
-                <div className="card" key={i} style={{ padding: '1.25rem' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <div className="card" key={i} style={{ padding: '1.5rem', marginBottom: 0 }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     {kpi.label}
                   </span>
-                  <div style={{ fontSize: '2rem', fontWeight: 800, color: kpi.color, marginTop: '0.25rem', lineHeight: 1 }}>
+                  <div style={{ fontSize: '2.1rem', fontWeight: 800, color: kpi.color, marginTop: '0.35rem', lineHeight: 1, letterSpacing: '-0.02em' }}>
                     {kpi.value}
                   </div>
-                  {kpi.sub && <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{kpi.sub}</span>}
+                  {kpi.sub && <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.35rem', display: 'block' }}>{kpi.sub}</span>}
                   {kpi.isBar && (
-                    <div style={{ background: 'var(--border)', borderRadius: '999px', height: '6px', marginTop: '0.5rem', overflow: 'hidden' }}>
-                      <div style={{ background: '#7c3aed', width: `${Math.min(100, kpi.rate)}%`, height: '100%', borderRadius: '999px' }} />
+                    <div style={{ background: 'var(--border)', borderRadius: '999px', height: '6px', marginTop: '0.65rem', overflow: 'hidden' }}>
+                      <div style={{ background: 'linear-gradient(90deg, var(--palette-1), var(--palette-2))', width: `${Math.min(100, kpi.rate)}%`, height: '100%', borderRadius: '999px' }} />
                     </div>
                   )}
                 </div>
@@ -778,7 +778,7 @@ export default function RoomsPage() {
                   />
 
                   {hasCustomPhotos && (
-                    <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'linear-gradient(135deg,#0284c7,#0369a1)', color: '#fff', fontSize: '0.68rem', fontWeight: 800, padding: '0.2rem 0.55rem', borderRadius: '999px', boxShadow: '0 2px 8px rgba(2,132,199,0.5)', letterSpacing: '0.04em' }}>
+                    <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'linear-gradient(135deg, var(--palette-1), #8a644c)', color: '#fff', fontSize: '0.68rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '999px', boxShadow: '0 2px 8px rgba(174, 140, 116, 0.45)', letterSpacing: '0.04em' }}>
                       📁 Dataset Photos
                     </div>
                   )}
@@ -793,54 +793,54 @@ export default function RoomsPage() {
                 </div>
 
                 {/* ── Room Details ── */}
-                <div style={{ padding: '1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.15rem' }}>Room #{room.roomNumber}</h3>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>🏢 {room.buildingName || 'Main Block'} &bull; Floor {room.floorNumber}</div>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.2rem', letterSpacing: '-0.02em' }}>Room #{room.roomNumber}</h3>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>🏢 {room.buildingName || 'Main Block'} &bull; Floor {room.floorNumber}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#2563eb' }}>₹{room.baseRent?.toLocaleString()}</div>
+                      <div style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--palette-1)', letterSpacing: '-0.02em' }}>₹{room.baseRent?.toLocaleString()}</div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>per month</div>
                     </div>
                   </div>
 
                   <div>
-                    <span style={{ background: '#eff6ff', color: '#2563eb', fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '999px', border: '1px solid #bfdbfe' }}>
+                    <span style={{ background: 'var(--bg-subtle)', color: 'var(--palette-1)', fontSize: '0.75rem', fontWeight: 700, padding: '0.3rem 0.75rem', borderRadius: '999px', border: '1px solid var(--border)' }}>
                       🛏️ {ROOM_TYPE_LABEL[room.roomType] || room.roomType}
                     </span>
-                    <span style={{ marginLeft: '0.5rem', background: statusStyle.bg, color: statusStyle.color, fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '999px', border: `1px solid ${statusStyle.border}` }}>
+                    <span style={{ marginLeft: '0.5rem', background: statusStyle.bg, color: statusStyle.color, fontSize: '0.75rem', fontWeight: 700, padding: '0.3rem 0.75rem', borderRadius: '999px', border: `1px solid ${statusStyle.border}` }}>
                       {freeBeds.length} bed{freeBeds.length !== 1 ? 's' : ''} free
                     </span>
                   </div>
 
-                  {room.description && <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.5 }}>{room.description}</p>}
+                  {room.description && <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: 1.55 }}>{room.description}</p>}
 
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem' }}>
                     {amenities.slice(0, 5).map((a, i) => (
-                      <span key={i} style={{ fontSize: '0.72rem', background: 'var(--bg-main)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.2rem 0.5rem', color: 'var(--text-muted)', fontWeight: 500 }}>{a}</span>
+                      <span key={i} style={{ fontSize: '0.72rem', background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: '6px', padding: '0.22rem 0.55rem', color: 'var(--text-muted)', fontWeight: 600 }}>{a}</span>
                     ))}
-                    {amenities.length > 5 && <span style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 600, padding: '0.2rem 0.5rem' }}>+{amenities.length - 5} more</span>}
+                    {amenities.length > 5 && <span style={{ fontSize: '0.72rem', color: 'var(--palette-1)', fontWeight: 700, padding: '0.2rem 0.5rem' }}>+{amenities.length - 5} more</span>}
                   </div>
 
                   <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.3rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
                       <span>BED OCCUPANCY</span><span>{room.occupiedBeds}/{room.capacity}</span>
                     </div>
-                    <div style={{ background: 'var(--border)', borderRadius: '999px', height: '6px', overflow: 'hidden' }}>
-                      <div style={{ background: room.occupiedBeds === room.capacity ? '#ef4444' : '#10b981', width: `${Math.min(100, (room.occupiedBeds / room.capacity) * 100)}%`, height: '100%', borderRadius: '999px', transition: 'width 0.4s ease' }} />
+                    <div style={{ background: 'var(--border)', borderRadius: '999px', height: '7px', overflow: 'hidden' }}>
+                      <div style={{ background: room.occupiedBeds === room.capacity ? 'var(--danger)' : 'linear-gradient(90deg, var(--palette-1), var(--palette-2))', width: `${Math.min(100, (room.occupiedBeds / room.capacity) * 100)}%`, height: '100%', borderRadius: '999px', transition: 'width 0.4s ease' }} />
                     </div>
                   </div>
 
                   {/* Action buttons */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: 'auto', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)' }}>
                     {/* Row 1: View / Book */}
-                    <div style={{ display: 'flex', gap: '0.6rem' }}>
-                      <button onClick={() => openGallery(room, 0)} className="btn btn-outline" style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }}>
+                    <div style={{ display: 'flex', gap: '0.65rem' }}>
+                      <button onClick={() => openGallery(room, 0)} className="btn btn-outline" style={{ flex: 1, fontSize: '0.84rem', padding: '0.55rem' }}>
                         📷 View Photos ({photos.length})
                       </button>
                       {(canBook || (!isAdmin && freeBeds.length > 0)) && (
-                        <button onClick={() => openBooking(room)} className="btn btn-primary" style={{ flex: 1, fontSize: '0.82rem', padding: '0.5rem' }}>
+                        <button onClick={() => openBooking(room)} className="btn btn-primary" style={{ flex: 1, fontSize: '0.84rem', padding: '0.55rem' }}>
                           📋 Book Room
                         </button>
                       )}
@@ -848,11 +848,11 @@ export default function RoomsPage() {
 
                     {/* Row 2: Admin Dataset photo picker + Bed controls */}
                     {isAdmin && (
-                      <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                         <button
                           onClick={() => handleOpenDatasetPicker(room)}
                           title="Open dataset images to customize photos for this room"
-                          style={{ fontSize: '0.78rem', padding: '0.38rem 0.7rem', border: '1px solid #93c5fd', borderRadius: '8px', background: '#eff6ff', color: '#1d4ed8', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                          style={{ fontSize: '0.78rem', padding: '0.4rem 0.75rem', border: '1px solid var(--palette-2)', borderRadius: '8px', background: 'var(--bg-subtle)', color: 'var(--palette-1)', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
                         >
                           🖼️ Edit Photos ({photos.length})
                         </button>
@@ -911,50 +911,51 @@ export default function RoomsPage() {
                 const isPendingOver5Min = req.status === 'PENDING' && minutesAgo >= 5;
 
                 return (
-                  <div key={req.id} className="card" style={{ padding: '1.25rem', border: '1px solid var(--border)', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div key={req.id} className="card" style={{ padding: '1.5rem 1.6rem', border: '1px solid var(--border)', borderRadius: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: 'var(--shadow-sm)', marginBottom: 0 }}>
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.65rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.85rem' }}>
                         <div>
-                          <strong style={{ fontSize: '1.05rem', color: 'var(--text-main)' }}>{req.userName}</strong>
-                          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{req.userEmail}</div>
+                          <strong style={{ fontSize: '1.1rem', color: 'var(--text-main)', letterSpacing: '-0.015em' }}>{req.userName}</strong>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{req.userEmail}</div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
                           <span style={{ 
-                            fontSize: '0.75rem', fontWeight: 800, padding: '0.25rem 0.65rem', borderRadius: '999px',
-                            background: req.status === 'PENDING' ? '#fef3c7' : req.status === 'APPROVED' ? '#dcfce7' : '#fee2e2',
-                            color: req.status === 'PENDING' ? '#b45309' : req.status === 'APPROVED' ? '#166534' : '#b91c1c'
+                            fontSize: '0.72rem', fontWeight: 800, padding: '0.3rem 0.75rem', borderRadius: '999px',
+                            background: req.status === 'PENDING' ? 'var(--warning-light)' : req.status === 'APPROVED' ? 'var(--success-light)' : 'var(--danger-light)',
+                            color: req.status === 'PENDING' ? 'var(--warning)' : req.status === 'APPROVED' ? 'var(--success)' : 'var(--danger)',
+                            border: `1px solid ${req.status === 'PENDING' ? 'rgba(198,122,30,0.3)' : req.status === 'APPROVED' ? 'rgba(58,122,79,0.3)' : 'rgba(184,58,45,0.3)'}`
                           }}>{req.status}</span>
                           {isPendingOver5Min && (
-                            <div style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 700, marginTop: '0.2rem' }}>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--warning)', fontWeight: 700, marginTop: '0.3rem' }}>
                               ⚠️ Waiting {minutesAgo}m
                             </div>
                           )}
                         </div>
                       </div>
 
-                      <div style={{ padding: '0.6rem 0.75rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '0.75rem', fontSize: '0.85rem' }}>
-                        <div style={{ fontWeight: 700, color: '#1d4ed8' }}>
+                      <div style={{ padding: '0.75rem 0.95rem', background: 'var(--bg-subtle)', borderRadius: '10px', border: '1px solid var(--border)', marginBottom: '0.85rem', fontSize: '0.86rem' }}>
+                        <div style={{ fontWeight: 800, color: 'var(--palette-1)' }}>
                           🛏️ Room {req.roomNumber} &bull; Bed {req.bedNumber}
                         </div>
                         {req.requestNote && (
-                          <div style={{ marginTop: '0.35rem', color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.8rem' }}>
+                          <div style={{ marginTop: '0.4rem', color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.82rem' }}>
                             "{req.requestNote}"
                           </div>
                         )}
-                        <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '0.35rem' }}>
+                        <div style={{ fontSize: '0.74rem', color: 'var(--text-faint)', marginTop: '0.4rem' }}>
                           Requested: {requestedDate ? requestedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' }) : 'Recently'}
                           {minutesAgo > 0 ? ` (${minutesAgo} mins ago)` : ' (Just now)'}
                         </div>
                       </div>
 
                       {req.adminNote && (
-                         <div style={{ fontSize: '0.8rem', color: '#2563eb', marginBottom: '0.75rem', background: '#eff6ff', padding: '0.45rem 0.65rem', borderRadius: '6px' }}>
+                         <div style={{ fontSize: '0.82rem', color: 'var(--palette-1)', marginBottom: '0.85rem', background: 'var(--primary-light)', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid var(--primary-border)' }}>
                            <strong>Admin Note:</strong> {req.adminNote}
                          </div>
                       )}
                     </div>
 
-                    <div style={{ marginTop: '0.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem' }}>
+                    <div style={{ marginTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.85rem' }}>
                       {isAdmin && req.status === 'PENDING' && (
                         <div style={{ marginBottom: '0.65rem' }}>
                           <input 

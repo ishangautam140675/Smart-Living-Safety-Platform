@@ -223,13 +223,15 @@ export default function FoodMessPage() {
   // Unauthenticated Guard Screen
   if (!user) {
     return (
-      <div style={{ padding: '60px 24px', maxWidth: 600, margin: '40px auto', textAlign: 'center', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🍽️</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>Food &amp; Mess Management</h2>
-        <p style={{ color: '#64748b', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+      <div className="card" style={{ maxWidth: 580, margin: '3.5rem auto', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🍽️</div>
+        <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.6rem' }}>
+          Food &amp; Mess Dining Portal
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
           Please sign in to view daily dining menus, notify the mess of skipped meals, and submit food quality ratings.
         </p>
-        <a href="/login" style={{ display: 'inline-block', padding: '10px 24px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, backgroundColor: '#0d6efd', color: '#fff' }}>
+        <a href="/login" className="btn btn-primary" style={{ padding: '0.65rem 1.75rem' }}>
           Sign In to Access
         </a>
       </div>
@@ -237,36 +239,37 @@ export default function FoodMessPage() {
   }
 
   return (
-    <div className="container" style={{ padding: '2rem 1rem' }}>
+    <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-            🍽️ Food &amp; Mess Management
+          <h1 className="page-title">
+            <span>🍽️</span> Food &amp; Mess Dining
           </h1>
-          <p style={{ margin: '0.35rem 0 0', color: 'var(--text-muted)' }}>
-            Daily hostel meal schedule, dietary nutrition, anti-waste meal opt-outs, and food quality ratings
+          <p className="page-subtitle">
+            Daily hostel meal schedule, nutritional information, food quality reviews, and zero-waste meal opt-outs.
           </p>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="page-header-actions">
           <input
             type="date"
+            className="form-control"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600 }}
+            style={{ width: 'auto', fontWeight: 600 }}
           />
 
+          <button
+            className="btn btn-outline"
+            onClick={() => loadData()}
+            title="Refresh menu and opt-outs"
+          >
+            🔄 Refresh
+          </button>
+
           {isAdminOrStaff && (
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button
-                className="btn btn-outline"
-                onClick={() => loadData()}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                title="Refresh menu and opt-outs"
-              >
-                🔄 Refresh
-              </button>
+            <>
               <button
                 className="btn btn-primary"
                 onClick={() => {
@@ -277,74 +280,91 @@ export default function FoodMessPage() {
                     items: '',
                     isVeg: true,
                     dietaryNotes: '',
-                    calories: '450 kcal'
+                    calories: '450 kcal',
+                    imageUrl: '',
+                    price: 0
                   });
                   setShowMenuModal(true);
                 }}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
               >
                 <span>➕</span> Add / Update Menu
               </button>
               <button
                 className="btn btn-outline"
                 onClick={handleClearOldMenus}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderColor: '#ef4444', color: '#ef4444' }}
+                style={{ borderColor: 'rgba(184, 58, 45, 0.35)', color: 'var(--danger)' }}
                 title="Remove all menu entries older than 7 days"
               >
                 🧹 Clear Old
               </button>
-            </div>
+            </>
           )}
         </div>
       </div>
 
       {/* Alerts */}
       {error && (
-        <div className="alert alert-danger" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b' }}>
-          ⚠️ {error}
+        <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
       {successMsg && (
-        <div className="alert alert-success" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#dcfce7', color: '#166534' }}>
-          ✅ {successMsg}
+        <div className="alert alert-success" style={{ marginBottom: '1.5rem', background: 'var(--success-light)', color: 'var(--success)', border: '1px solid rgba(58, 122, 79, 0.3)' }}>
+          <span>✅</span>
+          <span>{successMsg}</span>
         </div>
       )}
 
       {/* KPI Cards for Staff */}
       {isAdminOrStaff && summary && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>TODAY'S MENU SLOTS</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#10b981', margin: '0.25rem 0' }}>
-              {summary.totalMenusToday} / 4
+        <div className="kpi-grid">
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'linear-gradient(90deg, #3a7a4f, #5ca072)' }} />
+            <div>
+              <div className="kpi-label">Today's Menu Slots</div>
+              <div className="kpi-value" style={{ color: 'var(--success)' }}>
+                {summary.totalMenusToday} / 4
+              </div>
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Configured for {selectedDate}</div>
+            <div className="kpi-subtext">Configured for {selectedDate}</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #f59e0b' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>MEAL OPT-OUTS</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f59e0b', margin: '0.25rem 0' }}>
-              {summary.totalOptOutsToday}
+
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'linear-gradient(90deg, #c27a1e, #e4cba7)' }} />
+            <div>
+              <div className="kpi-label">Meal Opt-Outs</div>
+              <div className="kpi-value" style={{ color: 'var(--warning)' }}>
+                {summary.totalOptOutsToday}
+              </div>
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Portions saved today</div>
+            <div className="kpi-subtext">Portions saved from waste</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #f43f5e' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>COMMUNITY RATING</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f43f5e', margin: '0.25rem 0' }}>
-              ★ {summary.averageRating}
+
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'linear-gradient(90deg, var(--palette-1), #8d674f)' }} />
+            <div>
+              <div className="kpi-label">Community Rating</div>
+              <div className="kpi-value" style={{ color: 'var(--palette-1)' }}>
+                ★ {summary.averageRating}
+              </div>
             </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>From {summary.totalFeedbacks} resident reviews</div>
+            <div className="kpi-subtext">From {summary.totalFeedbacks} reviews</div>
           </div>
         </div>
       )}
 
       {/* Daily Meals Grid */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>Loading dining menu...</div>
+        <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⏳</div>
+          Loading dining menu...
+        </div>
       ) : dailyMenus.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🍱</div>
-          <h3>No Meal Menu Published for {selectedDate}</h3>
-          <p style={{ maxWidth: 450, margin: '0.5rem auto 1.5rem' }}>
+        <div className="empty-state">
+          <div className="empty-state-icon">🍱</div>
+          <div className="empty-state-title">No Meal Menu Published for {selectedDate}</div>
+          <p className="empty-state-desc">
             {isAdminOrStaff
               ? 'Click "Add / Update Menu" above to configure Breakfast, Lunch, Snacks, or Dinner for this date.'
               : 'The kitchen team has not yet uploaded the meal schedule for this date. Please check back shortly.'}
@@ -360,7 +380,9 @@ export default function FoodMessPage() {
                   items: '',
                   isVeg: true,
                   dietaryNotes: '',
-                  calories: '450 kcal'
+                  calories: '450 kcal',
+                  imageUrl: '',
+                  price: 0
                 });
                 setShowMenuModal(true);
               }}
@@ -370,9 +392,9 @@ export default function FoodMessPage() {
           )}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
           {dailyMenus.map((menu) => {
-            const mealConfig = MEAL_TIMES[menu.mealType] || { label: menu.mealType, icon: '🍽️', time: '', color: '#475569' };
+            const mealConfig = MEAL_TIMES[menu.mealType] || { label: menu.mealType, icon: '🍽️', time: '', color: 'var(--palette-1)' };
             return (
               <div
                 key={menu.id}
@@ -380,46 +402,52 @@ export default function FoodMessPage() {
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  padding: '1.5rem',
+                  padding: '1.5rem 1.6rem',
                   borderTop: `4px solid ${mealConfig.color}`,
-                  position: 'relative'
+                  position: 'relative',
+                  marginBottom: 0
                 }}
               >
-                {/* Meal Header */}
+                {/* Image */}
                 {menu.imageUrl && (
-                  <img src={menu.imageUrl} alt={menu.title} style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.75rem' }} />
+                  <div style={{ borderRadius: 'var(--radius-md)', overflow: 'hidden', marginBottom: '1rem', height: '160px', background: 'var(--bg-subtle)' }}>
+                    <img
+                      src={menu.imageUrl}
+                      alt={menu.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+
+                {/* Meal Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.85rem' }}>
                   <div>
-                    <span style={{ fontSize: '1.3rem', marginRight: '0.35rem' }}>{mealConfig.icon}</span>
+                    <span style={{ fontSize: '1.3rem', marginRight: '0.4rem' }}>{mealConfig.icon}</span>
                     <span style={{ fontWeight: 800, fontSize: '1.1rem', color: mealConfig.color }}>
                       {mealConfig.label}
                     </span>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '3px' }}>
                       ⏱️ {mealConfig.time}
                     </div>
                   </div>
 
-                  <span
-                    style={{
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      backgroundColor: menu.veg ? '#dcfce7' : '#fee2e2',
-                      color: menu.veg ? '#166534' : '#991b1b',
-                      border: `1px solid ${menu.veg ? '#86efac' : '#fca5a5'}`
-                    }}
-                  >
-                    {menu.veg ? '🟢 VEG' : '🔴 NON-VEG'}
+                  <span className={`badge ${menu.veg ? 'badge-success' : 'badge-danger'}`}>
+                    {menu.veg ? '🥦 VEG' : '🍗 NON-VEG'}
                   </span>
                 </div>
 
                 {/* Title & Items */}
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 700, margin: '0.5rem 0', color: 'var(--text-main)' }}>
-                  {menu.title} {menu.price > 0 && <span style={{ color: '#059669', fontSize: '1rem', marginLeft: '0.5rem' }}>₹{menu.price}</span>}
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0.35rem 0 0.65rem', color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+                  {menu.title}
+                  {menu.price > 0 && (
+                    <span style={{ color: 'var(--palette-1)', fontSize: '0.95rem', marginLeft: '0.5rem', fontWeight: 700 }}>
+                      ₹{menu.price}
+                    </span>
+                  )}
                 </h3>
-                <div style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.5, flex: 1, backgroundColor: '#f8fafc', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-main)', lineHeight: 1.6, flex: 1, backgroundColor: 'var(--bg-subtle)', padding: '0.85rem 1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
                   {menu.items}
                 </div>
 
@@ -430,13 +458,13 @@ export default function FoodMessPage() {
                 </div>
 
                 {/* Rating & Opt-out counter */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid #f1f5f9', marginTop: 'auto' }}>
-                  <span style={{ color: '#e11d48', fontWeight: 700 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', marginTop: 'auto' }}>
+                  <span style={{ color: 'var(--warning)', fontWeight: 800 }}>
                     ★ {menu.averageRating > 0 ? menu.averageRating : 'New'}
                     <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 400 }}> ({menu.totalFeedbacks})</span>
                   </span>
 
-                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     🚫 {menu.optOutCount} opt-outs
                   </span>
                 </div>
@@ -449,7 +477,7 @@ export default function FoodMessPage() {
                         <button
                           onClick={() => handleCancelOptOut(menu)}
                           className="btn btn-outline"
-                          style={{ flex: 1, fontSize: '0.85rem', borderColor: '#10b981', color: '#10b981' }}
+                          style={{ flex: 1, fontSize: '0.85rem', borderColor: 'rgba(58, 122, 79, 0.4)', color: 'var(--success)' }}
                         >
                           ✅ Re-join Meal
                         </button>
@@ -457,7 +485,7 @@ export default function FoodMessPage() {
                         <button
                           onClick={() => setActiveMenuForOptOut(menu)}
                           className="btn btn-outline"
-                          style={{ flex: 1, fontSize: '0.85rem', borderColor: '#ef4444', color: '#ef4444' }}
+                          style={{ flex: 1, fontSize: '0.85rem', borderColor: 'rgba(184, 58, 45, 0.35)', color: 'var(--danger)' }}
                         >
                           🚫 Skip Meal
                         </button>
@@ -466,7 +494,7 @@ export default function FoodMessPage() {
                       <button
                         onClick={() => setActiveMenuForFeedback(menu)}
                         className="btn btn-outline"
-                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem' }}
+                        style={{ padding: '0.45rem 0.85rem', fontSize: '0.85rem' }}
                       >
                         ⭐ Rate
                       </button>
@@ -485,7 +513,7 @@ export default function FoodMessPage() {
                       <button
                         onClick={() => handleDeleteMenu(menu)}
                         className="btn btn-outline"
-                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.85rem', borderColor: '#ef4444', color: '#ef4444' }}
+                        style={{ padding: '0.45rem 0.75rem', fontSize: '0.85rem', borderColor: 'rgba(184, 58, 45, 0.35)', color: 'var(--danger)' }}
                         title="Delete this menu entry"
                       >
                         🗑️
@@ -501,31 +529,31 @@ export default function FoodMessPage() {
 
       {/* MODAL 1: Admin Add / Edit Menu */}
       {showMenuModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '520px', padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ margin: 0, fontSize: '1.3rem' }}>🍽️ Publish / Edit Meal Menu</h2>
-              <button onClick={() => setShowMenuModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>✕</button>
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: '580px' }}>
+            <div className="modal-header">
+              <h2 className="modal-title">🍽️ Publish / Edit Meal Menu</h2>
+              <button className="modal-close-btn" onClick={() => setShowMenuModal(false)}>✕</button>
             </div>
 
-            <form onSubmit={handleSaveMenu}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <form onSubmit={handleSaveMenu} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Menu Date</label>
+                  <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>Menu Date</label>
                   <input
                     type="date"
                     required
+                    className="form-control"
                     value={menuForm.menuDate}
                     onChange={(e) => setMenuForm({ ...menuForm, menuDate: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Meal Slot</label>
+                  <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>Meal Slot</label>
                   <select
+                    className="form-control"
                     value={menuForm.mealType}
                     onChange={(e) => setMenuForm({ ...menuForm, mealType: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
                   >
                     <option value="BREAKFAST">Breakfast</option>
                     <option value="LUNCH">Lunch</option>
@@ -535,102 +563,112 @@ export default function FoodMessPage() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Main Dish / Title</label>
+              <div>
+                <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>Main Dish / Title *</label>
                 <input
                   type="text"
                   required
+                  className="form-control"
                   placeholder="e.g. North Indian Deluxe Thali / Masala Dosa Feast"
                   value={menuForm.title}
                   onChange={(e) => setMenuForm({ ...menuForm, title: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Included Items</label>
+              <div>
+                <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>Included Items *</label>
                 <textarea
                   required
                   rows="3"
+                  className="form-control"
                   placeholder="e.g. Paneer Butter Masala, Dal Makhani, Jeera Rice, Butter Naan, Gulab Jamun, Salad"
                   value={menuForm.items}
                   onChange={(e) => setMenuForm({ ...menuForm, items: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                  style={{ resize: 'vertical' }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Food Category</label>
+                  <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>Food Category</label>
                   <select
+                    className="form-control"
                     value={menuForm.isVeg ? 'VEG' : 'NON_VEG'}
                     onChange={(e) => setMenuForm({ ...menuForm, isVeg: e.target.value === 'VEG' })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
                   >
-                    <option value="VEG">Pure Vegetarian 🟢</option>
-                    <option value="NON_VEG">Non-Vegetarian 🔴</option>
+                    <option value="VEG">Pure Vegetarian 🥦</option>
+                    <option value="NON_VEG">Non-Vegetarian 🍗</option>
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Calories / Nutrition</label>
+                  <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>Calories / Nutrition</label>
                   <input
                     type="text"
+                    className="form-control"
                     placeholder="e.g. 550 kcal"
                     value={menuForm.calories}
                     onChange={(e) => setMenuForm({ ...menuForm, calories: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Image URL</label>
+                  <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>Image URL</label>
                   <input
                     type="text"
+                    className="form-control"
                     placeholder="https://images.unsplash..."
                     value={menuForm.imageUrl}
                     onChange={(e) => setMenuForm({ ...menuForm, imageUrl: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Price (₹) (0 for Mess)</label>
+                  <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>Price (₹) (0 for Mess)</label>
                   <input
                     type="number"
+                    className="form-control"
                     value={menuForm.price}
                     onChange={(e) => setMenuForm({ ...menuForm, price: parseFloat(e.target.value) || 0 })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
               </div>
-              
-              <div style={{ marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.5rem' }}>Pick from Food Catalog</label>
-                <div style={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                  {foodCatalog.map(cat => (
-                     <div key={cat.id} onClick={() => setMenuForm({ ...menuForm, title: cat.title, price: cat.price, imageUrl: cat.imageUrl })} style={{ flexShrink: 0, width: '120px', cursor: 'pointer', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden' }}>
-                        <img src={cat.imageUrl} alt={cat.title} style={{ width: '100%', height: '70px', objectFit: 'cover' }} />
-                        <div style={{ padding: '0.4rem', fontSize: '0.75rem', fontWeight: 600, textAlign: 'center' }}>
-                          {cat.title}<br/><span style={{ color: '#059669' }}>₹{cat.price}</span>
-                        </div>
-                     </div>
-                  ))}
-                </div>
-              </div>
 
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Dietary / Allergen Notes</label>
+              {foodCatalog.length > 0 && (
+                <div style={{ background: 'var(--bg-subtle)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                  <label className="form-label" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-main)' }}>
+                    Pick from Food Catalog ({foodCatalog.length} Items)
+                  </label>
+                  <div style={{ display: 'flex', gap: '0.65rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+                    {foodCatalog.map((cat, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => setMenuForm({ ...menuForm, title: cat.name, price: cat.price, imageUrl: cat.imageUrl, isVeg: cat.veg })}
+                        style={{ flexShrink: 0, width: '130px', cursor: 'pointer', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden', background: 'var(--bg-surface)' }}
+                      >
+                        <img src={cat.imageUrl} alt={cat.name} style={{ width: '100%', height: '75px', objectFit: 'cover' }} onError={(e) => { e.target.style.display = 'none'; }} />
+                        <div style={{ padding: '0.45rem', fontSize: '0.78rem', fontWeight: 600, textAlign: 'center' }}>
+                          <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cat.name}</div>
+                          <span style={{ color: 'var(--palette-1)', fontWeight: 700 }}>₹{cat.price}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>Dietary / Allergen Notes</label>
                 <input
                   type="text"
+                  className="form-control"
                   placeholder="e.g. Nut-free, Jain option available upon request"
                   value={menuForm.dietaryNotes}
                   onChange={(e) => setMenuForm({ ...menuForm, dietaryNotes: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setShowMenuModal(false)} className="btn btn-outline">Cancel</button>
                 <button type="submit" disabled={savingMenu} className="btn btn-primary">
                   {savingMenu ? 'Saving...' : 'Save & Publish Menu'}
@@ -643,20 +681,27 @@ export default function FoodMessPage() {
 
       {/* MODAL 2: Resident Opt-Out Modal */}
       {activeMenuForOptOut && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 0.5rem', color: '#ef4444' }}>🚫 Opt Out of {activeMenuForOptOut.mealType}</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: '440px' }}>
+            <div className="modal-header">
+              <h3 className="modal-title" style={{ color: 'var(--danger)' }}>
+                🚫 Opt Out of {activeMenuForOptOut.mealType}
+              </h3>
+              <button className="modal-close-btn" onClick={() => setActiveMenuForOptOut(null)}>✕</button>
+            </div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
               Notifying the kitchen in advance helps prevent meal preparation waste. You can re-join before kitchen prep starts.
             </p>
 
-            <form onSubmit={handleConfirmOptOut}>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>Reason for Skipping</label>
+            <form onSubmit={handleConfirmOptOut} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                  Reason for Skipping
+                </label>
                 <select
+                  className="form-control"
                   value={optOutReason}
                   onChange={(e) => setOptOutReason(e.target.value)}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
                 >
                   <option value="Eating out / social event">Eating out / social event</option>
                   <option value="Travelling out of town">Travelling out of town</option>
@@ -666,9 +711,9 @@ export default function FoodMessPage() {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setActiveMenuForOptOut(null)} className="btn btn-outline">Cancel</button>
-                <button type="submit" disabled={submittingOptOut} className="btn btn-primary" style={{ backgroundColor: '#ef4444' }}>
+                <button type="submit" disabled={submittingOptOut} className="btn btn-primary" style={{ background: 'var(--danger)' }}>
                   {submittingOptOut ? 'Submitting...' : 'Confirm Opt-Out'}
                 </button>
               </div>
@@ -679,22 +724,27 @@ export default function FoodMessPage() {
 
       {/* MODAL 3: Resident Feedback Modal */}
       {activeMenuForFeedback && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 0.5rem' }}>⭐ Rate {activeMenuForFeedback.mealType}</h3>
+        <div className="modal-overlay">
+          <div className="modal-card" style={{ maxWidth: '440px' }}>
+            <div className="modal-header">
+              <h3 className="modal-title">⭐ Rate {activeMenuForFeedback.mealType}</h3>
+              <button className="modal-close-btn" onClick={() => setActiveMenuForFeedback(null)}>✕</button>
+            </div>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>
               {activeMenuForFeedback.title}
             </p>
 
-            <form onSubmit={handleSubmitFeedback}>
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>Star Rating</label>
-                <div style={{ display: 'flex', gap: '0.5rem', fontSize: '1.8rem', cursor: 'pointer' }}>
+            <form onSubmit={handleSubmitFeedback} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+              <div>
+                <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                  Star Rating
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', fontSize: '1.9rem', cursor: 'pointer' }}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <span
                       key={star}
                       onClick={() => setFeedbackForm({ ...feedbackForm, rating: star })}
-                      style={{ color: star <= feedbackForm.rating ? '#f59e0b' : '#cbd5e1' }}
+                      style={{ color: star <= feedbackForm.rating ? '#f59e0b' : 'var(--border)' }}
                     >
                       ★
                     </span>
@@ -702,18 +752,21 @@ export default function FoodMessPage() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>Comments / Suggestions (Optional)</label>
+              <div>
+                <label className="form-label" style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                  Comments / Suggestions (Optional)
+                </label>
                 <textarea
                   rows="3"
+                  className="form-control"
                   placeholder="e.g. Taste was great, would love more chutney!"
                   value={feedbackForm.comment}
                   onChange={(e) => setFeedbackForm({ ...feedbackForm, comment: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                  style={{ resize: 'vertical' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button type="button" onClick={() => setActiveMenuForFeedback(null)} className="btn btn-outline">Cancel</button>
                 <button type="submit" disabled={submittingFeedback} className="btn btn-primary">
                   {submittingFeedback ? 'Submitting...' : 'Submit Review'}

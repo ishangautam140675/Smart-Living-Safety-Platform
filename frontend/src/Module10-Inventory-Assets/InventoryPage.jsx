@@ -222,63 +222,67 @@ export default function InventoryPage() {
   const getConditionBadge = (cond) => {
     switch (cond) {
       case 'FUNCTIONAL':
-        return <span className="badge badge-success" style={{ backgroundColor: '#10b981', color: '#fff' }}>✓ FUNCTIONAL</span>;
+        return <span className="badge badge-success">✓ FUNCTIONAL</span>;
       case 'UNDER_REPAIR':
-        return <span className="badge badge-warning" style={{ backgroundColor: '#f59e0b', color: '#fff' }}>🛠️ UNDER REPAIR</span>;
+        return <span className="badge badge-warning">🛠️ UNDER REPAIR</span>;
       case 'DAMAGED':
-        return <span className="badge badge-danger" style={{ backgroundColor: '#ef4444', color: '#fff' }}>⚠️ DAMAGED</span>;
+        return <span className="badge badge-danger">⚠️ DAMAGED</span>;
       case 'REPLACED':
-        return <span className="badge badge-primary" style={{ backgroundColor: '#6366f1', color: '#fff' }}>🔄 REPLACED</span>;
+        return <span className="badge badge-mocha">🔄 REPLACED</span>;
       case 'DECOMMISSIONED':
-        return <span className="badge badge-neutral" style={{ backgroundColor: '#64748b', color: '#fff' }}>📦 RETIRED</span>;
+        return <span className="badge badge-neutral">📦 RETIRED</span>;
       default:
-        return <span className="badge">{cond}</span>;
+        return <span className="badge badge-neutral">{cond}</span>;
     }
   };
 
   // Unauthenticated Guard
   if (!user) {
     return (
-      <div style={{ padding: '60px 24px', maxWidth: 600, margin: '40px auto', textAlign: 'center', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>📦</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>Inventory &amp; Asset Management</h2>
-        <p style={{ color: '#64748b', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+      <div className="card" style={{ maxWidth: 580, margin: '3.5rem auto', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📦</div>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+          Inventory &amp; Asset Management
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
           Please sign in to track room equipment, inspect furniture and appliances, and conduct asset audits.
         </p>
-        <a href="/login" style={{ display: 'inline-block', padding: '10px 24px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, backgroundColor: '#0d6efd', color: '#fff' }}>
-          Sign In to Access
-        </a>
+        <div>
+          <a href="/login" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+            Sign In to Access
+          </a>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container" style={{ padding: '2rem 1rem' }}>
+    <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+          <h1 className="page-title">
             📦 Inventory &amp; Room Asset Management
           </h1>
-          <p style={{ margin: '0.35rem 0 0', color: 'var(--text-muted)' }}>
+          <p className="page-subtitle">
             Track hostel appliances, room furniture, condition audit inspections, and lifecycle warranties
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="page-header-actions">
           <button
             className="btn btn-outline"
             onClick={() => loadData()}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
             title="Refresh assets directory"
           >
-            🔄 Refresh
+            <span>🔄</span> Refresh
           </button>
           {isStaffOrAdmin && (
             <button
               className="btn btn-primary"
               onClick={handleOpenCreate}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
             >
               <span>➕</span> Register New Asset
             </button>
@@ -288,221 +292,253 @@ export default function InventoryPage() {
 
       {/* Alerts */}
       {error && (
-        <div className="alert alert-danger" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b' }}>
-          ⚠️ {error}
+        <div className="alert alert-danger" style={{ marginBottom: '1.25rem' }}>
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
       {successMsg && (
-        <div className="alert alert-success" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#dcfce7', color: '#166534' }}>
-          ✅ {successMsg}
+        <div
+          className="alert"
+          style={{
+            background: 'var(--success-light)',
+            color: 'var(--success)',
+            border: '1px solid rgba(58,122,79,0.3)',
+            display: 'flex',
+            gap: '0.5rem',
+            alignItems: 'center',
+            borderRadius: 'var(--radius-md)',
+            padding: '0.75rem 1rem',
+            marginBottom: '1.25rem'
+          }}
+        >
+          <span>✅</span>
+          <span>{successMsg}</span>
         </div>
       )}
 
       {/* KPI Cards */}
       {isStaffOrAdmin && summary && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #3b82f6' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL ASSETS</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#3b82f6', margin: '0.25rem 0' }}>
-              {summary.totalAssets}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Valued at ₹{Number(summary.totalAssetValue || 0).toLocaleString()}</div>
+        <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--palette-1)' }} />
+            <div className="kpi-label">TOTAL ASSETS</div>
+            <div className="kpi-value">{summary.totalAssets}</div>
+            <div className="kpi-subtext">Valued at ₹{Number(summary.totalAssetValue || 0).toLocaleString()}</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>FUNCTIONAL</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#10b981', margin: '0.25rem 0' }}>
-              {summary.functionalAssets}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Active &amp; operational</div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--success)' }} />
+            <div className="kpi-label">FUNCTIONAL</div>
+            <div className="kpi-value">{summary.functionalAssets}</div>
+            <div className="kpi-subtext">Active &amp; operational</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #f59e0b' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>UNDER REPAIR</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f59e0b', margin: '0.25rem 0' }}>
-              {summary.underRepairAssets}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Technician assigned</div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--warning)' }} />
+            <div className="kpi-label">UNDER REPAIR</div>
+            <div className="kpi-value">{summary.underRepairAssets}</div>
+            <div className="kpi-subtext">Technician assigned</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #ef4444' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>DAMAGED / AUDIT DUE</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ef4444', margin: '0.25rem 0' }}>
-              {summary.damagedAssets}
-            </div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Requires inspection</div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--danger)' }} />
+            <div className="kpi-label">DAMAGED / AUDIT DUE</div>
+            <div className="kpi-value">{summary.damagedAssets}</div>
+            <div className="kpi-subtext">Requires inspection</div>
           </div>
         </div>
       )}
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          placeholder="Search by asset tag, name, or room number..."
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          style={{ flex: 1, minWidth: '220px', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-        />
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
-        >
-          <option value="">All Categories</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c.replace('_', ' ')}</option>
-          ))}
-        </select>
-        <select
-          value={conditionFilter}
-          onChange={(e) => setConditionFilter(e.target.value)}
-          style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
-        >
-          <option value="">All Conditions</option>
-          {CONDITIONS.map((c) => (
-            <option key={c} value={c}>{c.replace('_', ' ')}</option>
-          ))}
-        </select>
+      {/* Filters Toolbar */}
+      <div className="toolbar-card" style={{ marginBottom: '1.5rem' }}>
+        <div className="search-input-wrapper" style={{ flex: 1, minWidth: 240 }}>
+          <span className="search-icon-inside">🔍</span>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search by asset tag, name, or room number..."
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+          />
+        </div>
+        <div style={{ minWidth: 180 }}>
+          <select
+            className="form-control"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="">All Categories</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>{c.replace('_', ' ')}</option>
+            ))}
+          </select>
+        </div>
+        <div style={{ minWidth: 180 }}>
+          <select
+            className="form-control"
+            value={conditionFilter}
+            onChange={(e) => setConditionFilter(e.target.value)}
+          >
+            <option value="">All Conditions</option>
+            {CONDITIONS.map((c) => (
+              <option key={c} value={c}>{c.replace('_', ' ')}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Assets Table */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div className="table-wrapper">
         {loading ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading inventory...</div>
+          <div style={{ padding: '3.5rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>⏳</div>
+            Loading inventory assets...
+          </div>
         ) : assets.length === 0 ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📦</div>
-            <h4>No Inventory Assets Found</h4>
-            <p style={{ margin: '0.25rem 0 1rem' }}>No equipment matches the selected filters.</p>
+          <div className="empty-state" style={{ padding: '3.5rem 1rem' }}>
+            <div className="empty-state-icon">📦</div>
+            <div className="empty-state-title">No Inventory Assets Found</div>
+            <div className="empty-state-desc">No equipment or room assets match the selected filters.</div>
             {isStaffOrAdmin && (
-              <button onClick={handleOpenCreate} className="btn btn-primary">➕ Register Asset</button>
+              <div style={{ marginTop: '1.25rem' }}>
+                <button onClick={handleOpenCreate} className="btn btn-primary">
+                  ➕ Register Asset
+                </button>
+              </div>
             )}
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
-                  <th style={{ padding: '0.75rem 1rem' }}>Asset Tag</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Item Name</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Category</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Room Location</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Condition</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Cost</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {assets.map((a) => (
-                  <tr key={a.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '0.75rem 1rem', fontWeight: 700, fontFamily: 'monospace' }}>
-                      {a.assetTag}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ fontWeight: 600 }}>{a.name}</div>
-                      {a.notes && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{a.notes}</div>}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <span style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600 }}>
-                        {a.category?.replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      {a.roomNumber ? (
-                        <div>
-                          <span style={{ fontWeight: 600 }}>Room {a.roomNumber}</span>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>
-                            {a.buildingName}
-                          </span>
-                        </div>
-                      ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>Common Store</span>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      {getConditionBadge(a.condition)}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem', fontWeight: 600 }}>
-                      {a.cost ? `₹${Number(a.cost).toLocaleString()}` : '—'}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                        {isStaffOrAdmin && (
-                          <>
-                            <button
-                              onClick={() => {
-                                setAuditAsset(a);
-                                setAuditForm({ newCondition: a.condition, remarks: '' });
-                              }}
-                              className="btn btn-outline"
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                            >
-                              🔍 Audit
-                            </button>
-                            <button
-                              onClick={() => handleOpenEdit(a)}
-                              className="btn btn-outline"
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                            >
-                              ✏️ Edit
-                            </button>
-                          </>
-                        )}
-                        <button
-                          onClick={() => handleViewHistory(a)}
-                          className="btn btn-outline"
-                          style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}
-                        >
-                          📜 History
-                        </button>
-                        {isStaffOrAdmin && (
-                          <button
-                            onClick={() => handleDeleteAsset(a)}
-                            className="btn btn-outline"
-                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem', borderColor: '#ef4444', color: '#ef4444' }}
-                            title="Permanently delete asset"
-                          >
-                            🗑️
-                          </button>
-                        )}
+          <table className="table-modern">
+            <thead>
+              <tr>
+                <th>Asset Tag</th>
+                <th>Item Name</th>
+                <th>Category</th>
+                <th>Room Location</th>
+                <th>Condition</th>
+                <th>Cost</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {assets.map((a) => (
+                <tr key={a.id}>
+                  <td style={{ fontWeight: 700, fontFamily: 'monospace', color: 'var(--palette-1)' }}>
+                    {a.assetTag}
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{a.name}</div>
+                    {a.notes && <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>{a.notes}</div>}
+                  </td>
+                  <td>
+                    <span className="badge badge-sand">
+                      {a.category?.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td>
+                    {a.roomNumber ? (
+                      <div>
+                        <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Room {a.roomNumber}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block' }}>
+                          {a.buildingName}
+                        </span>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    ) : (
+                      <span className="badge badge-neutral">Common Store</span>
+                    )}
+                  </td>
+                  <td>
+                    {getConditionBadge(a.condition)}
+                  </td>
+                  <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>
+                    {a.cost ? `₹${Number(a.cost).toLocaleString()}` : '—'}
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                      {isStaffOrAdmin && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setAuditAsset(a);
+                              setAuditForm({ newCondition: a.condition, remarks: '' });
+                            }}
+                            className="btn btn-outline"
+                            style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem' }}
+                          >
+                            🔍 Audit
+                          </button>
+                          <button
+                            onClick={() => handleOpenEdit(a)}
+                            className="btn btn-outline"
+                            style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem' }}
+                          >
+                            ✏️ Edit
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => handleViewHistory(a)}
+                        className="btn btn-outline"
+                        style={{ padding: '0.25rem 0.55rem', fontSize: '0.76rem' }}
+                      >
+                        📜 History
+                      </button>
+                      {isStaffOrAdmin && (
+                        <button
+                          onClick={() => handleDeleteAsset(a)}
+                          className="btn btn-outline"
+                          style={{
+                            padding: '0.25rem 0.55rem',
+                            fontSize: '0.76rem',
+                            borderColor: 'rgba(184,58,45,0.35)',
+                            color: 'var(--danger)'
+                          }}
+                          title="Permanently delete asset"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
       {/* MODAL 1: Add / Edit Asset */}
       {showAssetModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '520px', padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ margin: 0, fontSize: '1.3rem' }}>
+        <div className="modal-overlay" onClick={() => setShowAssetModal(false)}>
+          <div className="modal-card" style={{ maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">
                 {editingAssetId ? '✏️ Edit Asset' : '➕ Register New Asset'}
               </h2>
-              <button onClick={() => setShowAssetModal(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>✕</button>
+              <button className="modal-close-btn" onClick={() => setShowAssetModal(false)}>✕</button>
             </div>
 
-            <form onSubmit={handleSaveAsset}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <form onSubmit={handleSaveAsset} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Asset Tag Code</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Asset Tag Code *
+                  </label>
                   <input
                     type="text"
                     required
+                    className="form-control"
                     placeholder="e.g. AST-AC-101"
                     value={assetForm.assetTag}
                     onChange={(e) => setAssetForm({ ...assetForm, assetTag: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Category</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Category *
+                  </label>
                   <select
+                    className="form-control"
                     value={assetForm.category}
                     onChange={(e) => setAssetForm({ ...assetForm, category: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
                   >
                     {CATEGORIES.map((c) => (
                       <option key={c} value={c}>{c.replace('_', ' ')}</option>
@@ -511,25 +547,29 @@ export default function InventoryPage() {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Item Name / Model</label>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                  Item Name / Model *
+                </label>
                 <input
                   type="text"
                   required
+                  className="form-control"
                   placeholder="e.g. Daikin 1.5 Ton Inverter AC / Study Table"
                   value={assetForm.name}
                   onChange={(e) => setAssetForm({ ...assetForm, name: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Assigned Room</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Assigned Room
+                  </label>
                   <select
+                    className="form-control"
                     value={assetForm.roomId}
                     onChange={(e) => setAssetForm({ ...assetForm, roomId: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
                   >
                     <option value="">Common Store / Unallocated</option>
                     {rooms.map((r) => (
@@ -538,50 +578,58 @@ export default function InventoryPage() {
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Purchase Cost (₹)</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Purchase Cost (₹)
+                  </label>
                   <input
                     type="number"
+                    className="form-control"
                     placeholder="e.g. 15000"
                     value={assetForm.cost}
                     onChange={(e) => setAssetForm({ ...assetForm, cost: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Purchase Date</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Purchase Date
+                  </label>
                   <input
                     type="date"
+                    className="form-control"
                     value={assetForm.purchaseDate}
                     onChange={(e) => setAssetForm({ ...assetForm, purchaseDate: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Warranty Expiry</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Warranty Expiry
+                  </label>
                   <input
                     type="date"
+                    className="form-control"
                     value={assetForm.warrantyExpiry}
                     onChange={(e) => setAssetForm({ ...assetForm, warrantyExpiry: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
               </div>
 
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Notes / Serial Number</label>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                  Notes / Serial Number
+                </label>
                 <input
                   type="text"
+                  className="form-control"
                   placeholder="e.g. Serial #SN-98124501, 5-year compressor warranty"
                   value={assetForm.notes}
                   onChange={(e) => setAssetForm({ ...assetForm, notes: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
                 <button type="button" onClick={() => setShowAssetModal(false)} className="btn btn-outline">Cancel</button>
                 <button type="submit" disabled={savingAsset} className="btn btn-primary">
                   {savingAsset ? 'Saving...' : 'Save Asset'}
@@ -594,20 +642,25 @@ export default function InventoryPage() {
 
       {/* MODAL 2: Audit Condition */}
       {auditAsset && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '440px', padding: '2rem' }}>
-            <h3 style={{ margin: '0 0 0.5rem' }}>🔍 Audit Asset Condition</h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-              <strong>{auditAsset.assetTag}</strong> — {auditAsset.name}
+        <div className="modal-overlay" onClick={() => setAuditAsset(null)}>
+          <div className="modal-card" style={{ maxWidth: 460 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">🔍 Audit Asset Condition</h3>
+              <button className="modal-close-btn" onClick={() => setAuditAsset(null)}>✕</button>
+            </div>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: '0.5rem 0 1rem' }}>
+              Auditing <strong style={{ color: 'var(--text-main)' }}>{auditAsset.assetTag}</strong> — {auditAsset.name}
             </p>
 
-            <form onSubmit={handleAuditSubmit}>
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>New Condition</label>
+            <form onSubmit={handleAuditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                  New Condition Status *
+                </label>
                 <select
+                  className="form-control"
                   value={auditForm.newCondition}
                   onChange={(e) => setAuditForm({ ...auditForm, newCondition: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
                 >
                   {CONDITIONS.map((c) => (
                     <option key={c} value={c}>{c.replace('_', ' ')}</option>
@@ -615,19 +668,22 @@ export default function InventoryPage() {
                 </select>
               </div>
 
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Audit Inspection Remarks</label>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                  Audit Inspection Remarks *
+                </label>
                 <textarea
                   rows="3"
                   required
+                  className="form-control"
                   placeholder="e.g. Regular inspection, cooling performance checked and normal"
                   value={auditForm.remarks}
                   onChange={(e) => setAuditForm({ ...auditForm, remarks: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                  style={{ resize: 'vertical' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
                 <button type="button" onClick={() => setAuditAsset(null)} className="btn btn-outline">Cancel</button>
                 <button type="submit" disabled={submittingAudit} className="btn btn-primary">
                   {submittingAudit ? 'Saving...' : 'Record Audit'}
@@ -640,40 +696,54 @@ export default function InventoryPage() {
 
       {/* MODAL 3: Audit History Log */}
       {viewHistoryAsset && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '560px', padding: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h3 style={{ margin: 0 }}>📜 Condition Audit Trail</h3>
-              <button onClick={() => setViewHistoryAsset(null)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>✕</button>
+        <div className="modal-overlay" onClick={() => setViewHistoryAsset(null)}>
+          <div className="modal-card" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">📜 Condition Audit Trail</h3>
+              <button className="modal-close-btn" onClick={() => setViewHistoryAsset(null)}>✕</button>
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-              History for <strong>{viewHistoryAsset.assetTag}</strong> ({viewHistoryAsset.name})
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', margin: '0.5rem 0 1rem' }}>
+              Historical trail for <strong style={{ color: 'var(--text-main)' }}>{viewHistoryAsset.assetTag}</strong> ({viewHistoryAsset.name})
             </p>
 
             {loadingHistory ? (
-              <div style={{ textAlign: 'center', padding: '2rem' }}>Loading audit records...</div>
+              <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+                Loading audit records...
+              </div>
             ) : auditHistory.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
-                No condition changes recorded yet. Initial state: {viewHistoryAsset.condition}.
+              <div className="empty-state" style={{ padding: '2rem 1rem' }}>
+                <div className="empty-state-icon">📋</div>
+                <div className="empty-state-title">No Audit Records</div>
+                <div className="empty-state-desc">
+                  No condition changes recorded yet. Initial state: {viewHistoryAsset.condition}.
+                </div>
               </div>
             ) : (
-              <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+              <div style={{ maxHeight: '340px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                 {auditHistory.map((h) => (
-                  <div key={h.id} style={{ padding: '0.75rem 1rem', borderLeft: '3px solid #3b82f6', backgroundColor: '#f8fafc', marginBottom: '0.75rem', borderRadius: '0 6px 6px 0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      <span>👤 {h.auditedByName || h.auditedBy}</span>
+                  <div
+                    key={h.id}
+                    style={{
+                      padding: '0.85rem 1rem',
+                      borderLeft: '3px solid var(--palette-1)',
+                      backgroundColor: 'var(--bg-subtle)',
+                      borderRadius: '0 var(--radius-md) var(--radius-md) 0'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.25rem' }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>👤 {h.auditedByName || h.auditedBy}</span>
                       <span>{new Date(h.auditedAt).toLocaleString()}</span>
                     </div>
-                    <div style={{ margin: '0.35rem 0', fontWeight: 600 }}>
-                      Transition: {h.previousCondition} ➔ <span style={{ color: '#2563eb' }}>{h.newCondition}</span>
+                    <div style={{ margin: '0.35rem 0', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-main)' }}>
+                      Transition: {h.previousCondition} ➔ <span style={{ color: 'var(--palette-1)' }}>{h.newCondition}</span>
                     </div>
-                    {h.remarks && <div style={{ fontSize: '0.85rem', color: '#475569' }}>💬 {h.remarks}</div>}
+                    {h.remarks && <div style={{ fontSize: '0.84rem', color: 'var(--text-muted)' }}>💬 {h.remarks}</div>}
                   </div>
                 ))}
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.25rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
               <button onClick={() => setViewHistoryAsset(null)} className="btn btn-outline">Close</button>
             </div>
           </div>

@@ -211,30 +211,26 @@ export default function VisitorsPage() {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'APPROVED':
-        return <span className="badge badge-success" style={{ backgroundColor: '#10b981', color: '#fff' }}>APPROVED</span>;
-      case 'CHECKED_IN':
-        return <span className="badge badge-primary" style={{ backgroundColor: '#2563eb', color: '#fff' }}>INSIDE PREMISES</span>;
-      case 'CHECKED_OUT':
-        return <span className="badge badge-neutral" style={{ backgroundColor: '#64748b', color: '#fff' }}>CHECKED OUT</span>;
-      case 'PENDING_APPROVAL':
-        return <span className="badge badge-warning" style={{ backgroundColor: '#f59e0b', color: '#fff' }}>PENDING</span>;
-      case 'REJECTED':
-        return <span className="badge badge-danger" style={{ backgroundColor: '#ef4444', color: '#fff' }}>REJECTED</span>;
-      default:
-        return <span className="badge">{status}</span>;
+      case 'APPROVED':       return <span className="badge badge-success">APPROVED</span>;
+      case 'CHECKED_IN':     return <span className="badge badge-mocha">INSIDE</span>;
+      case 'CHECKED_OUT':    return <span className="badge badge-neutral">CHECKED OUT</span>;
+      case 'PENDING_APPROVAL': return <span className="badge badge-warning">PENDING</span>;
+      case 'REJECTED':       return <span className="badge badge-danger">REJECTED</span>;
+      default:               return <span className="badge">{status}</span>;
     }
   };
 
   if (!user) {
     return (
-      <div style={{ padding: '60px 24px', maxWidth: 600, margin: '40px auto', textAlign: 'center', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🚪</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>Visitor &amp; Gate Pass Management</h2>
-        <p style={{ color: '#64748b', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+      <div className="card" style={{ maxWidth: 580, margin: '3.5rem auto', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div style={{ fontSize: 52, marginBottom: '1rem' }}>🚪</div>
+        <h2 style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+          Visitor &amp; Gate Pass Management
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: 1.6 }}>
           Please sign in with your Resident, Security, or Admin account to generate visitor passes, verify gate entries, and manage visitor logs.
         </p>
-        <a href="/login" style={{ display: 'inline-block', padding: '10px 24px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, backgroundColor: '#0d6efd', color: '#fff' }}>
+        <a href="/login" className="btn btn-primary" style={{ display: 'inline-block', textDecoration: 'none' }}>
           Sign In to Access
         </a>
       </div>
@@ -242,21 +238,18 @@ export default function VisitorsPage() {
   }
 
   return (
-    <div className="container" style={{ padding: '2rem 1rem' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div>
+      {/* Page Header */}
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
-            🚪 Visitor &amp; Gate Pass Management
-          </h1>
-          <p style={{ margin: '0.35rem 0 0', color: 'var(--text-muted)' }}>
+          <h1 className="page-title">🚪 Visitor &amp; Gate Pass</h1>
+          <p className="page-subtitle">
             {isResident
               ? 'Pre-approve entry passes for your friends, family, and deliveries'
               : 'Real-time gate pass verification, security check-in, and visitor directory'}
           </p>
         </div>
-
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="page-header-actions">
           <button
             className="btn btn-outline"
             onClick={() => loadData()}
@@ -277,57 +270,65 @@ export default function VisitorsPage() {
 
       {/* Alerts */}
       {error && (
-        <div className="alert alert-danger" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b' }}>
-          ⚠️ {error}
+        <div className="alert alert-danger" style={{ marginBottom: '1.25rem' }}>
+          <span>⚠️</span><span>{error}</span>
         </div>
       )}
       {successMsg && (
-        <div className="alert alert-success" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#dcfce7', color: '#166534' }}>
-          ✅ {successMsg}
+        <div className="alert" style={{ marginBottom: '1.25rem', background: 'var(--success-light)', color: 'var(--success)', border: '1px solid rgba(58,122,79,0.3)', display: 'flex', gap: '0.5rem', alignItems: 'center', borderRadius: 'var(--radius-md)', padding: '0.75rem 1rem' }}>
+          <span>✅</span><span>{successMsg}</span>
         </div>
       )}
 
-      {/* KPI Cards (for Admin/Security) */}
+      {/* KPI Cards (Admin/Security) */}
       {isSecurityOrAdmin && summary && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #2563eb' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>CURRENTLY INSIDE</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#2563eb', margin: '0.25rem 0' }}>{summary.activeInside}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Active checked-in visitors</div>
+        <div className="kpi-grid" style={{ marginBottom: '2rem' }}>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--palette-1)' }} />
+            <div className="kpi-label">CURRENTLY INSIDE</div>
+            <div className="kpi-value" style={{ color: 'var(--palette-1)' }}>{summary.activeInside}</div>
+            <div className="kpi-subtext">Active checked-in visitors</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #10b981' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>EXPECTED TODAY</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#10b981', margin: '0.25rem 0' }}>{summary.expectedToday}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Scheduled arrivals</div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--success)' }} />
+            <div className="kpi-label">EXPECTED TODAY</div>
+            <div className="kpi-value" style={{ color: 'var(--success)' }}>{summary.expectedToday}</div>
+            <div className="kpi-subtext">Scheduled arrivals</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #64748b' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>CHECKED OUT TODAY</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#64748b', margin: '0.25rem 0' }}>{summary.checkedOut}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Completed visits</div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--palette-2)' }} />
+            <div className="kpi-label">CHECKED OUT TODAY</div>
+            <div className="kpi-value" style={{ color: 'var(--palette-2)' }}>{summary.checkedOut}</div>
+            <div className="kpi-subtext">Completed visits</div>
           </div>
-          <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid #6366f1' }}>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>TOTAL PASSES</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#6366f1', margin: '0.25rem 0' }}>{summary.totalPasses}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>All time records</div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--text-muted)' }} />
+            <div className="kpi-label">TOTAL PASSES</div>
+            <div className="kpi-value">{summary.totalPasses}</div>
+            <div className="kpi-subtext">All time records</div>
           </div>
         </div>
       )}
 
-      {/* Security Gate Scanner Bar (for Security/Admin) */}
+      {/* Security Gate Scanner Bar */}
       {isSecurityOrAdmin && (
-        <div className="card" style={{ padding: '1.25rem', marginBottom: '2rem', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 0.75rem', color: '#1e293b' }}>
+        <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem', background: 'var(--bg-subtle)', border: '1px solid var(--border)' }}>
+          <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 1rem', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             🔍 Fast Gate Pass Verification &amp; Check-In Scanner
           </h3>
           <form onSubmit={handleScanLookup} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-            <input
-              type="text"
-              placeholder="Enter or scan pass code (e.g. VP-E7EE9BB9)..."
-              value={scanCode}
-              onChange={(e) => setScanCode(e.target.value)}
-              style={{ flex: 1, minWidth: '240px', padding: '0.6rem 1rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.95rem' }}
-            />
-            <button type="submit" className="btn btn-primary" disabled={scanLoading} style={{ padding: '0.6rem 1.5rem' }}>
+            <div className="search-input-wrapper" style={{ flex: 1, minWidth: '240px' }}>
+              <span className="search-icon-inside">🔎</span>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Enter or scan pass code (e.g. VP-E7EE9BB9)..."
+                value={scanCode}
+                onChange={(e) => setScanCode(e.target.value)}
+                style={{ paddingLeft: '2.25rem' }}
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" disabled={scanLoading}>
               {scanLoading ? 'Verifying...' : 'Verify Pass'}
             </button>
             {scannedPass && (
@@ -343,19 +344,19 @@ export default function VisitorsPage() {
 
           {/* Scanned Pass Spotlight Card */}
           {scannedPass && (
-            <div style={{ marginTop: '1.25rem', padding: '1rem', borderRadius: '8px', background: '#fff', border: '2px solid #3b82f6' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                <div>
-                  <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1.1rem', color: '#1e293b' }}>
+            <div style={{ marginTop: '1.25rem', padding: '1.25rem', borderRadius: 'var(--radius-lg)', background: 'var(--bg-main)', border: '2px solid var(--palette-1)', boxShadow: 'var(--shadow-warm-glow)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1.1rem', color: 'var(--palette-1)', letterSpacing: '0.04em' }}>
                     {scannedPass.passCode}
                   </span>
-                  <span style={{ marginLeft: '0.75rem' }}>{getStatusBadge(scannedPass.status)}</span>
+                  {getStatusBadge(scannedPass.status)}
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   {scannedPass.status === 'APPROVED' && (
                     <button
                       className="btn btn-primary"
-                      style={{ padding: '0.4rem 1rem', backgroundColor: '#10b981', border: 'none' }}
+                      style={{ background: 'var(--success)', border: 'none' }}
                       onClick={() => setActiveCheckInPass(scannedPass)}
                     >
                       ✅ Check-In Visitor
@@ -363,8 +364,7 @@ export default function VisitorsPage() {
                   )}
                   {scannedPass.status === 'CHECKED_IN' && (
                     <button
-                      className="btn btn-primary"
-                      style={{ padding: '0.4rem 1rem', backgroundColor: '#64748b', border: 'none' }}
+                      className="btn btn-outline"
                       onClick={() => handleCheckOut(scannedPass.passCode)}
                     >
                       🚪 Check-Out Visitor
@@ -373,13 +373,13 @@ export default function VisitorsPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontSize: '0.9rem' }}>
-                <div><strong>Visitor:</strong> {scannedPass.visitorName} ({scannedPass.visitorPhone})</div>
-                <div><strong>Host Resident:</strong> {scannedPass.residentName} (Room {scannedPass.roomNumber || 'N/A'})</div>
-                <div><strong>Purpose:</strong> {scannedPass.purpose}</div>
-                <div><strong>Expected:</strong> {scannedPass.expectedDate} {scannedPass.expectedTime || ''}</div>
-                {scannedPass.vehicleNumber && <div><strong>Vehicle:</strong> {scannedPass.vehicleNumber}</div>}
-                {scannedPass.checkInTime && <div><strong>Entry Time:</strong> {new Date(scannedPass.checkInTime).toLocaleTimeString()}</div>}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.6rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                <div><span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Visitor:</span> {scannedPass.visitorName} ({scannedPass.visitorPhone})</div>
+                <div><span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Host:</span> {scannedPass.residentName} (Room {scannedPass.roomNumber || 'N/A'})</div>
+                <div><span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Purpose:</span> {scannedPass.purpose}</div>
+                <div><span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Expected:</span> {scannedPass.expectedDate} {scannedPass.expectedTime || ''}</div>
+                {scannedPass.vehicleNumber && <div><span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Vehicle:</span> {scannedPass.vehicleNumber}</div>}
+                {scannedPass.checkInTime && <div><span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Entry Time:</span> {new Date(scannedPass.checkInTime).toLocaleTimeString()}</div>}
               </div>
             </div>
           )}
@@ -388,18 +388,23 @@ export default function VisitorsPage() {
 
       {/* Search & Filters */}
       {isSecurityOrAdmin && (
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-          <input
-            type="text"
-            placeholder="Search by visitor, phone, passcode or resident..."
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            style={{ flex: 1, minWidth: '220px', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-          />
+        <div className="toolbar-card" style={{ marginBottom: '1.5rem' }}>
+          <div className="search-input-wrapper" style={{ flex: 1, minWidth: '220px' }}>
+            <span className="search-icon-inside">🔎</span>
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search by visitor, phone, passcode or resident..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              style={{ paddingLeft: '2.25rem' }}
+            />
+          </div>
           <select
+            className="form-control"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
+            style={{ minWidth: '180px', width: 'auto' }}
           >
             <option value="">All Statuses</option>
             <option value="APPROVED">Approved (Upcoming)</option>
@@ -412,217 +417,216 @@ export default function VisitorsPage() {
       )}
 
       {/* Visitor Passes Table */}
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
+      <div className="table-wrapper">
         {loading ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading passes...</div>
-        ) : passes.length === 0 ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            No visitor passes found. Click <strong>"New Visitor Pass"</strong> to pre-approve a visitor.
+            <div style={{ fontSize: 32, marginBottom: '0.75rem' }}>⏳</div>
+            Loading passes...
+          </div>
+        ) : passes.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">🚪</div>
+            <div className="empty-state-title">No visitor passes found</div>
+            <div className="empty-state-desc">Click <strong>"New Visitor Pass"</strong> to pre-approve a visitor.</div>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontWeight: 600 }}>
-                  <th style={{ padding: '0.75rem 1rem' }}>Pass Code</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Visitor Details</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Host Resident</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Purpose</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Scheduled</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                  <th style={{ padding: '0.75rem 1rem' }}>Timestamps</th>
-                  {isSecurityOrAdmin && <th style={{ padding: '0.75rem 1rem' }}>Actions</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {passes.map((pass) => (
-                  <tr key={pass.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                    <td style={{ padding: '0.75rem 1rem', fontFamily: 'monospace', fontWeight: 700, color: '#2563eb' }}>
+          <table className="table-modern">
+            <thead>
+              <tr>
+                <th>Pass Code</th>
+                <th>Visitor Details</th>
+                <th>Host Resident</th>
+                <th>Purpose</th>
+                <th>Scheduled</th>
+                <th>Status</th>
+                <th>Timestamps</th>
+                {isSecurityOrAdmin && <th>Actions</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {passes.map((pass) => (
+                <tr key={pass.id}>
+                  <td>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--palette-1)', fontSize: '0.9rem', letterSpacing: '0.03em' }}>
                       {pass.passCode}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ fontWeight: 600, color: '#1e293b' }}>{pass.visitorName}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{pass.visitorPhone}</div>
-                      {pass.vehicleNumber && (
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>🚗 {pass.vehicleNumber}</div>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ fontWeight: 600 }}>{pass.residentName}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                        Room: {pass.roomNumber || 'N/A'} {pass.buildingName ? `(${pass.buildingName})` : ''}
-                      </div>
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>{pass.purpose}</td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div>{pass.expectedDate}</div>
-                      {pass.expectedTime && (
-                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>{pass.expectedTime}</div>
-                      )}
-                    </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>{getStatusBadge(pass.status)}</td>
-                    <td style={{ padding: '0.75rem 1rem', fontSize: '0.8rem', color: '#64748b' }}>
-                      {pass.checkInTime && (
-                        <div>🟢 In: {new Date(pass.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                      )}
-                      {pass.checkOutTime && (
-                        <div>🔴 Out: {new Date(pass.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                      )}
-                      {!pass.checkInTime && <div>Created {new Date(pass.createdAt).toLocaleDateString()}</div>}
-                    </td>
-                    {isSecurityOrAdmin && (
-                      <td style={{ padding: '0.75rem 1rem' }}>
-                        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                          {pass.status === 'APPROVED' && (
-                            <button
-                              className="btn btn-outline"
-                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#10b981', borderColor: '#10b981' }}
-                              onClick={() => setActiveCheckInPass(pass)}
-                            >
-                              Check-In
-                            </button>
-                          )}
-                          {pass.status === 'CHECKED_IN' && (
-                            <button
-                              className="btn btn-outline"
-                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#64748b', borderColor: '#64748b' }}
-                              onClick={() => handleCheckOut(pass.passCode)}
-                            >
-                              Check-Out
-                            </button>
-                          )}
-                          {pass.status !== 'CHECKED_IN' && pass.status !== 'CHECKED_OUT' && pass.status !== 'EXPIRED' && (
-                            <button
-                              className="btn btn-outline"
-                              style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#f59e0b', borderColor: '#f59e0b' }}
-                              onClick={() => handleCancelPass(pass)}
-                              title="Cancel / expire this pass"
-                            >
-                              ✕
-                            </button>
-                          )}
+                    </span>
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{pass.visitorName}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{pass.visitorPhone}</div>
+                    {pass.vehicleNumber && (
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-faint)' }}>🚗 {pass.vehicleNumber}</div>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{pass.residentName}</div>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                      Room: {pass.roomNumber || 'N/A'} {pass.buildingName ? `(${pass.buildingName})` : ''}
+                    </div>
+                  </td>
+                  <td style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>{pass.purpose}</td>
+                  <td>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--text-main)' }}>{pass.expectedDate}</div>
+                    {pass.expectedTime && (
+                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{pass.expectedTime}</div>
+                    )}
+                  </td>
+                  <td>{getStatusBadge(pass.status)}</td>
+                  <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    {pass.checkInTime && (
+                      <div>🟢 In: {new Date(pass.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    )}
+                    {pass.checkOutTime && (
+                      <div>🔴 Out: {new Date(pass.checkOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    )}
+                    {!pass.checkInTime && <div>Created {new Date(pass.createdAt).toLocaleDateString()}</div>}
+                  </td>
+                  {isSecurityOrAdmin && (
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                        {pass.status === 'APPROVED' && (
                           <button
                             className="btn btn-outline"
-                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: '#ef4444', borderColor: '#ef4444' }}
-                            onClick={() => handleDeletePass(pass)}
-                            title="Permanently delete pass record"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: 'var(--success)', borderColor: 'rgba(58,122,79,0.4)' }}
+                            onClick={() => setActiveCheckInPass(pass)}
                           >
-                            🗑️
+                            Check-In
                           </button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        )}
+                        {pass.status === 'CHECKED_IN' && (
+                          <button
+                            className="btn btn-outline"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: 'var(--text-muted)', borderColor: 'var(--border)' }}
+                            onClick={() => handleCheckOut(pass.passCode)}
+                          >
+                            Check-Out
+                          </button>
+                        )}
+                        {pass.status !== 'CHECKED_IN' && pass.status !== 'CHECKED_OUT' && pass.status !== 'EXPIRED' && (
+                          <button
+                            className="btn btn-outline"
+                            style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: 'var(--warning)', borderColor: 'rgba(176,120,30,0.4)' }}
+                            onClick={() => handleCancelPass(pass)}
+                            title="Cancel / expire this pass"
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <button
+                          className="btn btn-outline"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'rgba(184,58,45,0.35)' }}
+                          onClick={() => handleDeletePass(pass)}
+                          title="Permanently delete pass record"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </div>
 
       {/* Modal: Create Visitor Pass */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto', padding: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 1rem' }}>
-              🎫 Pre-Approve Visitor Gate Pass
-            </h2>
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-card" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">🎫 Pre-Approve Visitor Gate Pass</h2>
+              <button className="modal-close-btn" onClick={() => setShowModal(false)}>✕</button>
+            </div>
 
             <form onSubmit={handleCreatePass} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Visitor Full Name *</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Visitor Full Name *</label>
                 <input
                   type="text"
                   required
+                  className="form-control"
                   placeholder="e.g. Ramesh Verma"
                   value={form.visitorName}
                   onChange={(e) => setForm({ ...form, visitorName: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Visitor Phone *</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Visitor Phone *</label>
                   <input
                     type="tel"
                     required
+                    className="form-control"
                     placeholder="+91 9876543210"
                     value={form.visitorPhone}
                     onChange={(e) => setForm({ ...form, visitorPhone: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Vehicle No. (optional)</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Vehicle No. (optional)</label>
                   <input
                     type="text"
+                    className="form-control"
                     placeholder="DL-01-AB-1234"
                     value={form.vehicleNumber}
                     onChange={(e) => setForm({ ...form, vehicleNumber: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Purpose of Visit *</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Purpose of Visit *</label>
                 <input
                   type="text"
                   required
+                  className="form-control"
                   placeholder="e.g. College study group / Family visit / Delivery"
                   value={form.purpose}
                   onChange={(e) => setForm({ ...form, purpose: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Expected Date *</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Expected Date *</label>
                   <input
                     type="date"
                     required
+                    className="form-control"
                     value={form.expectedDate}
                     onChange={(e) => setForm({ ...form, expectedDate: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Expected Time</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Expected Time</label>
                   <input
                     type="time"
+                    className="form-control"
                     value={form.expectedTime}
                     onChange={(e) => setForm({ ...form, expectedTime: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Host / Security Notes</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Host / Security Notes</label>
                 <textarea
                   rows="2"
+                  className="form-control"
                   placeholder="Special instructions for guard or guest..."
                   value={form.hostNotes}
                   onChange={(e) => setForm({ ...form, hostNotes: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                  style={{ resize: 'vertical' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={() => setShowModal(false)}
-                >
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setShowModal(false)}>
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  className="btn btn-primary"
-                  disabled={submitting}
-                >
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
                   {submitting ? 'Generating...' : 'Generate Pass'}
                 </button>
               </div>
@@ -633,22 +637,29 @@ export default function VisitorsPage() {
 
       {/* Modal: Gate Check-In Extra Verification */}
       {activeCheckInPass && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '460px', padding: '1.75rem' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.5rem' }}>
-              🛡️ Gate Entry Verification: {activeCheckInPass.passCode}
-            </h2>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem' }}>
-              Visitor: <strong>{activeCheckInPass.visitorName}</strong> visiting resident <strong>{activeCheckInPass.residentName}</strong>
-            </p>
+        <div className="modal-overlay" onClick={() => setActiveCheckInPass(null)}>
+          <div className="modal-card" style={{ maxWidth: '460px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">🛡️ Gate Entry Verification</h2>
+              <button className="modal-close-btn" onClick={() => setActiveCheckInPass(null)}>✕</button>
+            </div>
+
+            <div style={{ padding: '0.25rem 0 1rem', borderBottom: '1px solid var(--border)', marginBottom: '1rem' }}>
+              <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '1rem', color: 'var(--palette-1)', marginBottom: '0.3rem' }}>
+                {activeCheckInPass.passCode}
+              </div>
+              <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                Visitor: <strong style={{ color: 'var(--text-main)' }}>{activeCheckInPass.visitorName}</strong> visiting resident <strong style={{ color: 'var(--text-main)' }}>{activeCheckInPass.residentName}</strong>
+              </div>
+            </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>ID Proof Type</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>ID Proof Type</label>
                 <select
+                  className="form-control"
                   value={checkInForm.idProofType}
                   onChange={(e) => setCheckInForm({ ...checkInForm, idProofType: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 >
                   <option value="Aadhar Card">Aadhar Card</option>
                   <option value="Driving License">Driving License</option>
@@ -659,42 +670,38 @@ export default function VisitorsPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>ID Proof Number (optional)</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>ID Proof Number (optional)</label>
                 <input
                   type="text"
+                  className="form-control"
                   placeholder="Last 4 digits or ID number..."
                   value={checkInForm.idProofNumber}
                   onChange={(e) => setCheckInForm({ ...checkInForm, idProofNumber: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Gate / Security Notes</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.3rem', color: 'var(--text-main)' }}>Gate / Security Notes</label>
                 <input
                   type="text"
+                  className="form-control"
                   placeholder="e.g. Verified physically, visitor wearing mask"
                   value={checkInForm.securityNotes}
                   onChange={(e) => setCheckInForm({ ...checkInForm, securityNotes: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={() => setActiveCheckInPass(null)}
-                >
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button type="button" className="btn btn-outline" onClick={() => setActiveCheckInPass(null)}>
                   Cancel
                 </button>
                 <button
                   type="button"
                   className="btn btn-primary"
-                  style={{ backgroundColor: '#10b981', border: 'none' }}
+                  style={{ background: 'var(--success)', border: 'none' }}
                   onClick={() => handleCheckIn(activeCheckInPass.passCode)}
                 >
-                  Confirm Entry
+                  ✅ Confirm Entry
                 </button>
               </div>
             </div>

@@ -18,62 +18,47 @@ const ALL_STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED', 'REJECTED'];
 // ─── Small helper components ──────────────────────────────────────────────────
 
 function StatusBadge({ status }) {
-  const colors = {
-    OPEN:        'background:#fff3cd;color:#856404;border:1px solid #ffc107',
-    IN_PROGRESS: 'background:#cfe2ff;color:#084298;border:1px solid #0d6efd',
-    RESOLVED:    'background:#d1e7dd;color:#0f5132;border:1px solid #198754',
-    CLOSED:      'background:#e2e3e5;color:#41464b;border:1px solid #adb5bd',
-    REJECTED:    'background:#f8d7da;color:#842029;border:1px solid #dc3545',
-  };
-  return (
-    <span style={{
-      ...Object.fromEntries(
-        (colors[status] || 'background:#eee;color:#333').split(';').map(s => s.split(':'))
-      ),
-      padding: '2px 10px',
-      borderRadius: 12,
-      fontSize: 12,
-      fontWeight: 600,
-    }}>
-      {status?.replace('_', ' ')}
-    </span>
-  );
+  switch (status) {
+    case 'OPEN':
+      return <span className="badge badge-warning">⏳ OPEN</span>;
+    case 'IN_PROGRESS':
+      return <span className="badge badge-warm">⚙️ IN PROGRESS</span>;
+    case 'RESOLVED':
+      return <span className="badge badge-success">✓ RESOLVED</span>;
+    case 'CLOSED':
+      return <span className="badge badge-neutral">CLOSED</span>;
+    case 'REJECTED':
+      return <span className="badge badge-danger">REJECTED</span>;
+    default:
+      return <span className="badge badge-neutral">{status?.replace('_', ' ')}</span>;
+  }
 }
 
 function PriorityBadge({ priority }) {
-  const colors = {
-    LOW:      '#6c757d',
-    MEDIUM:   '#0d6efd',
-    HIGH:     '#fd7e14',
-    CRITICAL: '#dc3545',
-  };
-  return (
-    <span style={{
-      background: colors[priority] || '#aaa',
-      color: '#fff',
-      padding: '2px 8px',
-      borderRadius: 8,
-      fontSize: 11,
-      fontWeight: 700,
-    }}>
-      {priority}
-    </span>
-  );
+  switch (priority) {
+    case 'CRITICAL':
+      return <span className="badge badge-danger" style={{ fontWeight: 800 }}>⚡ CRITICAL</span>;
+    case 'HIGH':
+      return <span className="badge badge-warning" style={{ fontWeight: 700 }}>HIGH</span>;
+    case 'MEDIUM':
+      return <span className="badge badge-warm">MEDIUM</span>;
+    case 'LOW':
+    default:
+      return <span className="badge badge-neutral">LOW</span>;
+  }
 }
 
-function KpiCard({ label, value, color }) {
+function KpiCard({ label, value, stripeColor = 'var(--palette-1)', valueColor = 'var(--text-main)' }) {
   return (
-    <div style={{
-      background: '#fff',
-      border: `1px solid ${color}`,
-      borderLeft: `5px solid ${color}`,
-      borderRadius: 8,
-      padding: '18px 24px',
-      flex: '1 1 140px',
-      minWidth: 120,
-    }}>
-      <div style={{ fontSize: 28, fontWeight: 800, color }}>{value}</div>
-      <div style={{ fontSize: 13, color: '#666', marginTop: 4 }}>{label}</div>
+    <div className="kpi-card">
+      <div className="kpi-card-stripe" style={{ background: stripeColor }} />
+      <div>
+        <div className="kpi-label">{label}</div>
+        <div className="kpi-value" style={{ color: valueColor }}>{value}</div>
+      </div>
+      <div className="kpi-subtext">
+        <span>•</span> Ticket Status
+      </div>
     </div>
   );
 }
@@ -237,13 +222,15 @@ export default function ComplaintsPage() {
 
   if (!user) {
     return (
-      <div style={{ padding: '60px 24px', maxWidth: 600, margin: '40px auto', textAlign: 'center', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>🛠️</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>Complaints &amp; Maintenance Portal</h2>
-        <p style={{ color: '#64748b', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+      <div className="card" style={{ maxWidth: 580, margin: '3.5rem auto', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🛠️</div>
+        <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.6rem' }}>
+          Complaints &amp; Maintenance Portal
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
           Please sign in with your Resident, Staff, or Admin account to lodge maintenance tickets, view resolution updates, or manage hostel complaints.
         </p>
-        <a href="/login" style={{ display: 'inline-block', padding: '10px 24px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, backgroundColor: '#0d6efd', color: '#fff' }}>
+        <a href="/login" className="btn btn-primary" style={{ padding: '0.65rem 1.75rem' }}>
           Sign In to Access
         </a>
       </div>
@@ -251,113 +238,186 @@ export default function ComplaintsPage() {
   }
 
   return (
-    <div style={{ padding: '32px 24px', maxWidth: 1100, margin: '0 auto', fontFamily: 'Inter, sans-serif' }}>
-
-      <h1 style={{ fontSize: 26, fontWeight: 800, color: '#1a1a2e', margin: '0 0 4px' }}>
-        🛠️ Complaints & Maintenance
-      </h1>
-      <p style={{ color: '#666', marginBottom: 28, fontSize: 14 }}>
-        {isResident ? 'Submit and track your maintenance requests.' :
-          'Manage all resident complaints and maintenance tickets.'}
-      </p>
+    <div>
+      {/* Page Header */}
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">
+            <span>🛠️</span> Complaints &amp; Maintenance
+          </h1>
+          <p className="page-subtitle">
+            {isResident
+              ? 'Submit repair tickets, track ticket resolution, and view maintenance history.'
+              : 'Monitor active facility tickets, assign personnel, and record SLA resolutions.'}
+          </p>
+        </div>
+      </div>
 
       {/* ── Alerts ── */}
-      {error   && <div style={{ background:'#f8d7da',color:'#842029',padding:'12px 16px',borderRadius:8,marginBottom:16,border:'1px solid #f1aeb5' }}>{error}</div>}
-      {success && <div style={{ background:'#d1e7dd',color:'#0f5132',padding:'12px 16px',borderRadius:8,marginBottom:16,border:'1px solid #a3cfbb' }}>{success}</div>}
+      {error && (
+        <div className="alert alert-danger" style={{ marginBottom: '1.5rem' }}>
+          <span>⚠️</span>
+          <span>{error}</span>
+        </div>
+      )}
+      {success && (
+        <div className="alert alert-success" style={{ marginBottom: '1.5rem', background: 'var(--success-light)', color: 'var(--success)', border: '1px solid rgba(58, 122, 79, 0.3)' }}>
+          <span>✅</span>
+          <span>{success}</span>
+        </div>
+      )}
 
       {/* ════════════════════════════════════════
           RESIDENT VIEW
       ════════════════════════════════════════ */}
       {isResident && (
         <>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-            <h2 style={{ fontSize:18, margin:0, color:'#333' }}>My Complaints ({myComplaints.length})</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+              My Maintenance Requests ({myComplaints.length})
+            </h2>
             <button
-              onClick={() => setShowForm(f => !f)}
-              style={{ background:'#0d6efd',color:'#fff',border:'none',padding:'10px 20px',borderRadius:8,cursor:'pointer',fontWeight:600 }}>
-              {showForm ? '✕ Cancel' : '+ New Complaint'}
+              onClick={() => setShowForm((f) => !f)}
+              className="btn btn-primary"
+            >
+              {showForm ? '✕ Close Form' : '➕ Lodge New Complaint'}
             </button>
           </div>
 
           {/* Submit form */}
           {showForm && (
-            <form onSubmit={handleSubmit} style={{ background:'#f8f9fa',borderRadius:12,padding:24,marginBottom:28,border:'1px solid #dee2e6' }}>
-              <h3 style={{ margin:'0 0 20px', color:'#1a1a2e' }}>Submit a Complaint</h3>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
-                <div>
-                  <label style={{ display:'block',marginBottom:6,fontWeight:600,fontSize:13 }}>Category *</label>
-                  <select value={form.category} onChange={e => setForm(f => ({...f, category:e.target.value}))}
-                    style={{ width:'100%',padding:'9px 12px',borderRadius:6,border:'1px solid #ced4da',fontSize:14 }}>
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c.replace('_',' ')}</option>)}
-                  </select>
+            <div className="card" style={{ padding: '2rem', marginBottom: '2rem' }}>
+              <h3 style={{ margin: '0 0 1.25rem', color: 'var(--text-main)', fontSize: '1.2rem', fontWeight: 700 }}>
+                Lodge a Maintenance Request
+              </h3>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                  <div>
+                    <label className="form-label" style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 700, fontSize: '0.85rem' }}>
+                      Category *
+                    </label>
+                    <select
+                      className="form-control"
+                      value={form.category}
+                      onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c.replace('_', ' ')}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="form-label" style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 700, fontSize: '0.85rem' }}>
+                      Priority
+                    </label>
+                    <select
+                      className="form-control"
+                      value={form.priority}
+                      onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}
+                    >
+                      {PRIORITIES.map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
+
                 <div>
-                  <label style={{ display:'block',marginBottom:6,fontWeight:600,fontSize:13 }}>Priority</label>
-                  <select value={form.priority} onChange={e => setForm(f => ({...f, priority:e.target.value}))}
-                    style={{ width:'100%',padding:'9px 12px',borderRadius:6,border:'1px solid #ced4da',fontSize:14 }}>
-                    {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
+                  <label className="form-label" style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 700, fontSize: '0.85rem' }}>
+                    Title / Summary *
+                  </label>
+                  <input
+                    className="form-control"
+                    value={form.title}
+                    onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                    placeholder="Brief description of the problem (e.g. Geyser not heating, Tap leaking)"
+                    required
+                    maxLength={150}
+                  />
                 </div>
-              </div>
-              <div style={{ marginBottom:16 }}>
-                <label style={{ display:'block',marginBottom:6,fontWeight:600,fontSize:13 }}>Title *</label>
-                <input value={form.title} onChange={e => setForm(f => ({...f, title:e.target.value}))}
-                  placeholder="Brief summary of the issue"
-                  required maxLength={150}
-                  style={{ width:'100%',padding:'9px 12px',borderRadius:6,border:'1px solid #ced4da',fontSize:14,boxSizing:'border-box' }} />
-              </div>
-              <div style={{ marginBottom:16 }}>
-                <label style={{ display:'block',marginBottom:6,fontWeight:600,fontSize:13 }}>Description *</label>
-                <textarea value={form.description} onChange={e => setForm(f => ({...f, description:e.target.value}))}
-                  placeholder="Describe the problem in detail..."
-                  required rows={4} maxLength={2000}
-                  style={{ width:'100%',padding:'9px 12px',borderRadius:6,border:'1px solid #ced4da',fontSize:14,boxSizing:'border-box',resize:'vertical' }} />
-              </div>
-              <div style={{ marginBottom:20 }}>
-                <label style={{ display:'block',marginBottom:6,fontWeight:600,fontSize:13 }}>Room ID (optional — leave blank for common areas)</label>
-                <input type="number" value={form.roomId} onChange={e => setForm(f => ({...f, roomId:e.target.value}))}
-                  placeholder="e.g. 1"
-                  style={{ width:200,padding:'9px 12px',borderRadius:6,border:'1px solid #ced4da',fontSize:14 }} />
-              </div>
-              <button type="submit" disabled={submitting}
-                style={{ background:'#0d6efd',color:'#fff',border:'none',padding:'10px 28px',borderRadius:8,cursor:'pointer',fontWeight:600,fontSize:14 }}>
-                {submitting ? 'Submitting…' : 'Submit Complaint'}
-              </button>
-            </form>
+
+                <div>
+                  <label className="form-label" style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 700, fontSize: '0.85rem' }}>
+                    Detailed Description *
+                  </label>
+                  <textarea
+                    className="form-control"
+                    value={form.description}
+                    onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                    placeholder="Describe what happened, exact location in room, and urgency..."
+                    required
+                    rows={4}
+                    maxLength={2000}
+                    style={{ resize: 'vertical' }}
+                  />
+                </div>
+
+                <div style={{ maxWidth: '280px' }}>
+                  <label className="form-label" style={{ display: 'block', marginBottom: '0.35rem', fontWeight: 700, fontSize: '0.85rem' }}>
+                    Room Number / ID (Optional)
+                  </label>
+                  <input
+                    type="number"
+                    className="form-control"
+                    value={form.roomId}
+                    onChange={(e) => setForm((f) => ({ ...f, roomId: e.target.value }))}
+                    placeholder="e.g. 101 (Leave empty for common areas)"
+                  />
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <button type="button" className="btn btn-outline" onClick={() => setShowForm(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={submitting} className="btn btn-primary">
+                    {submitting ? 'Submitting…' : 'Submit Ticket'}
+                  </button>
+                </div>
+              </form>
+            </div>
           )}
 
           {/* My complaints list */}
           {myComplaints.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'60px 20px', color:'#888', background:'#f8f9fa', borderRadius:12, border:'1px dashed #dee2e6' }}>
-              <div style={{ fontSize:40, marginBottom:12 }}>📋</div>
-              <div style={{ fontSize:16, fontWeight:600 }}>No complaints yet</div>
-              <div style={{ fontSize:13, marginTop:6 }}>Click "New Complaint" to submit a maintenance request.</div>
+            <div className="empty-state">
+              <div className="empty-state-icon">📋</div>
+              <div className="empty-state-title">No complaints lodged yet</div>
+              <div className="empty-state-desc">
+                Everything looks quiet and clean. Click "Lodge New Complaint" if anything requires repair or attention.
+              </div>
             </div>
           ) : (
-            <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-              {myComplaints.map(c => (
-                <div key={c.id} style={{ background:'#fff', border:'1px solid #dee2e6', borderRadius:10, padding:'16px 20px' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', flexWrap:'wrap', gap:8, marginBottom:8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {myComplaints.map((c) => (
+                <div key={c.id} className="card" style={{ padding: '1.5rem 1.75rem', marginBottom: 0 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.65rem' }}>
                     <div>
-                      <span style={{ fontWeight:700, color:'#1a1a2e', fontSize:15 }}>{c.title}</span>
-                      <span style={{ marginLeft:10, color:'#888', fontSize:12 }}>#{c.id}</span>
+                      <span style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1.05rem' }}>{c.title}</span>
+                      <span style={{ marginLeft: '10px', color: 'var(--palette-1)', fontSize: '0.85rem', fontFamily: 'monospace', fontWeight: 700 }}>
+                        #{c.id}
+                      </span>
                     </div>
-                    <div style={{ display:'flex', gap:8 }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                       <PriorityBadge priority={c.priority} />
                       <StatusBadge status={c.status} />
                     </div>
                   </div>
-                  <div style={{ color:'#555', fontSize:13, marginBottom:8 }}>{c.description}</div>
-                  <div style={{ display:'flex', gap:20, fontSize:12, color:'#888', flexWrap:'wrap' }}>
-                    <span>🏷️ {c.category?.replace('_',' ')}</span>
+
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem', lineHeight: 1.6 }}>
+                    {c.description}
+                  </p>
+
+                  <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', flexWrap: 'wrap', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem' }}>
+                    <span>🏷️ {c.category?.replace('_', ' ')}</span>
                     {c.roomNumber && <span>🚪 Room {c.roomNumber}</span>}
                     <span>📅 {fmt(c.createdAt)}</span>
-                    {c.assignedStaffName && <span>👷 {c.assignedStaffName}</span>}
-                    {c.resolvedAt && <span>✅ Resolved: {fmt(c.resolvedAt)}</span>}
+                    {c.assignedStaffName && <span>👷 Responding: {c.assignedStaffName}</span>}
+                    {c.resolvedAt && <span style={{ color: 'var(--success)' }}>✅ Resolved: {fmt(c.resolvedAt)}</span>}
                   </div>
+
                   {c.resolutionNote && (
-                    <div style={{ marginTop:10, padding:'8px 12px', background:'#d1e7dd', borderRadius:6, fontSize:13, color:'#0f5132' }}>
-                      <strong>Staff note:</strong> {c.resolutionNote}
+                    <div style={{ marginTop: '0.85rem', padding: '0.75rem 1rem', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', border: '1px solid var(--border)', color: 'var(--text-main)' }}>
+                      <strong style={{ color: 'var(--palette-1)' }}>Staff Resolution Note:</strong> {c.resolutionNote}
                     </div>
                   )}
                 </div>
@@ -374,127 +434,179 @@ export default function ComplaintsPage() {
         <>
           {/* KPI Summary */}
           {summary && (
-            <div style={{ display:'flex', flexWrap:'wrap', gap:16, marginBottom:32 }}>
-              <KpiCard label="Total"       value={summary.totalComplaints} color="#6c757d" />
-              <KpiCard label="Open"        value={summary.open}            color="#ffc107" />
-              <KpiCard label="In Progress" value={summary.inProgress}      color="#0d6efd" />
-              <KpiCard label="Resolved"    value={summary.resolved}        color="#198754" />
-              <KpiCard label="Closed"      value={summary.closed}          color="#adb5bd" />
-              <KpiCard label="Rejected"    value={summary.rejected}        color="#dc3545" />
+            <div className="kpi-grid">
+              <KpiCard label="Total Tickets" value={summary.totalComplaints} stripeColor="linear-gradient(90deg, var(--palette-1), var(--palette-2))" />
+              <KpiCard label="Open" value={summary.open} stripeColor="linear-gradient(90deg, #c27a1e, #e4cba7)" valueColor="var(--warning)" />
+              <KpiCard label="In Progress" value={summary.inProgress} stripeColor="linear-gradient(90deg, var(--palette-1), #8d674f)" valueColor="var(--palette-1)" />
+              <KpiCard label="Resolved" value={summary.resolved} stripeColor="linear-gradient(90deg, #3a7a4f, #5ca072)" valueColor="var(--success)" />
+              <KpiCard label="Closed" value={summary.closed} stripeColor="linear-gradient(90deg, #736357, #9e8e82)" valueColor="var(--text-muted)" />
+              <KpiCard label="Rejected" value={summary.rejected} stripeColor="linear-gradient(90deg, #b83a2d, #df7164)" valueColor="var(--danger)" />
             </div>
           )}
 
           {/* Search & filter toolbar */}
-          <div style={{ display:'flex', gap:12, marginBottom:20, flexWrap:'wrap', justifyContent:'space-between', alignItems:'center' }}>
-            <div style={{ display:'flex', gap:12, flexWrap:'wrap', flex:1 }}>
+          <div className="toolbar-card">
+            <div className="search-input-wrapper">
+              <span className="search-icon-inside">🔍</span>
               <input
+                className="form-control"
                 value={keyword}
-                onChange={e => setKeyword(e.target.value)}
-                placeholder="Search by title, description or resident…"
-                style={{ flex:1, minWidth:220, padding:'9px 14px', borderRadius:8, border:'1px solid #ced4da', fontSize:14 }}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="Search by ticket title, description, or resident name…"
               />
-              <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
-                style={{ padding:'9px 14px', borderRadius:8, border:'1px solid #ced4da', fontSize:14 }}>
-                <option value="">All Statuses</option>
-                {ALL_STATUSES.map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
-              </select>
-              <button onClick={loadAdminData}
-                style={{ background:'#0d6efd',color:'#fff',border:'none',padding:'9px 20px',borderRadius:8,cursor:'pointer',fontWeight:600 }}>
-                🔍 Search
-              </button>
             </div>
-            {canManage && (
-              <button
-                onClick={async () => {
-                  if (!window.confirm('Are you sure you want to permanently clear all completed/resolved and closed maintenance tasks?')) return;
-                  try {
-                    const res = await complaintService.clearCompletedComplaints();
-                    setSuccess(`Cleared ${res.count || 0} completed tasks permanently.`);
-                    await loadAdminData();
-                  } catch (e) {
-                    setError(e.message);
-                  }
-                }}
-                style={{ background:'#dc2626', color:'#fff', border:'none', padding:'9px 18px', borderRadius:8, cursor:'pointer', fontWeight:700, fontSize:13 }}>
-                🗑️ Clear Completed Tasks
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+              <select
+                className="form-control"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{ minWidth: '150px' }}
+              >
+                <option value="">All Statuses</option>
+                {ALL_STATUSES.map((s) => (
+                  <option key={s} value={s}>{s.replace('_', ' ')}</option>
+                ))}
+              </select>
+              <button onClick={loadAdminData} className="btn btn-outline">
+                🔄 Filter
               </button>
-            )}
+              {canManage && (
+                <button
+                  onClick={async () => {
+                    if (!window.confirm('Are you sure you want to permanently clear all completed/resolved and closed maintenance tasks?')) return;
+                    try {
+                      const res = await complaintService.clearCompletedComplaints();
+                      setSuccess(`Cleared ${res.count || 0} completed tasks permanently.`);
+                      await loadAdminData();
+                    } catch (e) {
+                      setError(e.message);
+                    }
+                  }}
+                  className="btn btn-outline"
+                  style={{ borderColor: 'rgba(184, 58, 45, 0.4)', color: 'var(--danger)' }}
+                >
+                  🗑️ Clear Resolved
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Status-update panel (admin / staff only) */}
           {canManage && selectedComplaint && (
-            <div style={{ background:'#fff3cd', border:'1px solid #ffc107', borderRadius:10, padding:20, marginBottom:24 }}>
-              <h3 style={{ margin:'0 0 16px', fontSize:16, color:'#856404' }}>
-                Update Complaint #{selectedComplaint.id}: <em>{selectedComplaint.title}</em>
-              </h3>
-              <form onSubmit={handleStatusUpdate} style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'flex-end' }}>
-                <div>
-                  <label style={{ display:'block', fontSize:12, fontWeight:600, marginBottom:4 }}>New Status *</label>
-                  <select value={newStatus} onChange={e => setNewStatus(e.target.value)} required
-                    style={{ padding:'9px 14px', borderRadius:6, border:'1px solid #ced4da', fontSize:14 }}>
+            <div className="card" style={{ background: 'var(--bg-subtle)', border: '1px solid var(--palette-2)', padding: '1.75rem', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                  Update Complaint #{selectedComplaint.id}: <em>{selectedComplaint.title}</em>
+                </h3>
+                <button
+                  className="btn btn-outline"
+                  style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}
+                  onClick={() => { setSelectedComplaint(null); setNewStatus(''); setResolutionNote(''); }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleStatusUpdate} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <div style={{ minWidth: '180px' }}>
+                  <label className="form-label" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                    New Status *
+                  </label>
+                  <select
+                    className="form-control"
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    required
+                  >
                     <option value="">Select status…</option>
-                    {ALL_STATUSES.map(s => <option key={s} value={s}>{s.replace('_',' ')}</option>)}
+                    {ALL_STATUSES.map((s) => (
+                      <option key={s} value={s}>{s.replace('_', ' ')}</option>
+                    ))}
                   </select>
                 </div>
-                <div style={{ flex:1, minWidth:220 }}>
-                  <label style={{ display:'block', fontSize:12, fontWeight:600, marginBottom:4 }}>
+
+                <div style={{ flex: 1, minWidth: '240px' }}>
+                  <label className="form-label" style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.35rem' }}>
                     Resolution Note {(newStatus === 'RESOLVED' || newStatus === 'REJECTED') ? '(required)' : '(optional)'}
                   </label>
-                  <input value={resolutionNote} onChange={e => setResolutionNote(e.target.value)}
-                    placeholder="Describe actions taken…"
-                    style={{ width:'100%', padding:'9px 12px', borderRadius:6, border:'1px solid #ced4da', fontSize:14, boxSizing:'border-box' }} />
+                  <input
+                    className="form-control"
+                    value={resolutionNote}
+                    onChange={(e) => setResolutionNote(e.target.value)}
+                    placeholder="Describe maintenance actions taken…"
+                  />
                 </div>
-                <button type="submit" disabled={updatingStatus}
-                  style={{ background:'#198754',color:'#fff',border:'none',padding:'9px 20px',borderRadius:8,cursor:'pointer',fontWeight:600,whiteSpace:'nowrap' }}>
-                  {updatingStatus ? 'Saving…' : '✅ Save'}
-                </button>
-                <button type="button" onClick={() => { setSelectedComplaint(null); setNewStatus(''); setResolutionNote(''); }}
-                  style={{ background:'#6c757d',color:'#fff',border:'none',padding:'9px 16px',borderRadius:8,cursor:'pointer',fontWeight:600 }}>
-                  Cancel
-                </button>
+
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button type="submit" disabled={updatingStatus} className="btn btn-primary">
+                    {updatingStatus ? 'Saving…' : '✅ Save Update'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={() => { setSelectedComplaint(null); setNewStatus(''); setResolutionNote(''); }}
+                  >
+                    Cancel
+                  </button>
+                </div>
               </form>
             </div>
           )}
 
           {/* Complaints table */}
-          {complaints.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'60px 20px', color:'#888', background:'#f8f9fa', borderRadius:12, border:'1px dashed #dee2e6' }}>
-              <div style={{ fontSize:40, marginBottom:12 }}>📋</div>
-              <div>No complaints found.</div>
-            </div>
-          ) : (
-            <div style={{ overflowX:'auto' }}>
-              <table style={{ width:'100%', borderCollapse:'collapse', background:'#fff', borderRadius:10, overflow:'hidden', boxShadow:'0 1px 4px rgba(0,0,0,0.07)' }}>
+          <div className="table-wrapper">
+            {complaints.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-state-icon">📋</div>
+                <div className="empty-state-title">No complaints found</div>
+                <div className="empty-state-desc">No tickets matched your query or filter criteria.</div>
+              </div>
+            ) : (
+              <table className="table-modern">
                 <thead>
-                  <tr style={{ background:'#f8f9fa', borderBottom:'2px solid #dee2e6' }}>
-                    {['#ID','Category','Title','Resident','Priority','Status','Assigned To','Created','Actions'].map(h => (
-                      <th key={h} style={{ padding:'12px 14px', textAlign:'left', fontSize:12, fontWeight:700, color:'#555', whiteSpace:'nowrap' }}>{h}</th>
-                    ))}
+                  <tr>
+                    <th>#ID</th>
+                    <th>Category</th>
+                    <th>Title</th>
+                    <th>Resident</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Assigned To</th>
+                    <th>Created</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {complaints.map((c, i) => (
-                    <tr key={c.id} style={{ borderBottom:'1px solid #f0f0f0', background: i%2===0?'#fff':'#fafbfc' }}>
-                      <td style={{ padding:'12px 14px', fontSize:13, color:'#888' }}>#{c.id}</td>
-                      <td style={{ padding:'12px 14px', fontSize:13 }}>{c.category?.replace('_',' ')}</td>
-                      <td style={{ padding:'12px 14px', fontSize:13, maxWidth:200 }}>
-                        <div style={{ fontWeight:600, color:'#1a1a2e' }}>{c.title}</div>
-                        {c.roomNumber && <div style={{ fontSize:11, color:'#888' }}>Room {c.roomNumber}</div>}
+                  {complaints.map((c) => (
+                    <tr key={c.id}>
+                      <td style={{ fontFamily: 'monospace', fontWeight: 700, color: 'var(--palette-1)' }}>
+                        #{c.id}
                       </td>
-                      <td style={{ padding:'12px 14px', fontSize:13 }}>
-                        <div>{c.residentName}</div>
-                        <div style={{ fontSize:11, color:'#888' }}>{c.residentEmail}</div>
+                      <td style={{ fontWeight: 600 }}>{c.category?.replace('_', ' ')}</td>
+                      <td style={{ maxWidth: '240px' }}>
+                        <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{c.title}</div>
+                        {c.roomNumber && <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Room {c.roomNumber}</div>}
                       </td>
-                      <td style={{ padding:'12px 14px' }}><PriorityBadge priority={c.priority} /></td>
-                      <td style={{ padding:'12px 14px' }}><StatusBadge status={c.status} /></td>
-                      <td style={{ padding:'12px 14px', fontSize:13, color:'#555' }}>{c.assignedStaffName || '—'}</td>
-                      <td style={{ padding:'12px 14px', fontSize:12, color:'#888', whiteSpace:'nowrap' }}>{fmt(c.createdAt)}</td>
-                      <td style={{ padding:'12px 14px' }}>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{c.residentName}</div>
+                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{c.residentEmail}</div>
+                      </td>
+                      <td><PriorityBadge priority={c.priority} /></td>
+                      <td><StatusBadge status={c.status} /></td>
+                      <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                        {c.assignedStaffName || '—'}
+                      </td>
+                      <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                        {fmt(c.createdAt)}
+                      </td>
+                      <td>
                         {canManage && (
-                          <div style={{ display:'flex', gap:6 }}>
+                          <div style={{ display: 'flex', gap: '0.45rem' }}>
                             <button
                               onClick={() => { setSelectedComplaint(c); setNewStatus(c.status); setResolutionNote(c.resolutionNote || ''); }}
-                              style={{ background:'#0d6efd',color:'#fff',border:'none',padding:'5px 10px',borderRadius:6,cursor:'pointer',fontSize:12,fontWeight:600 }}>
+                              className="btn btn-outline"
+                              style={{ padding: '0.35rem 0.7rem', fontSize: '0.78rem' }}
+                            >
                               Update
                             </button>
                             <button
@@ -508,7 +620,10 @@ export default function ComplaintsPage() {
                                   setError(e.message);
                                 }
                               }}
-                              style={{ background:'#fee2e2',color:'#dc2626',border:'1px solid #fecaca',padding:'5px 8px',borderRadius:6,cursor:'pointer',fontSize:12,fontWeight:700 }}>
+                              className="btn btn-outline"
+                              style={{ padding: '0.35rem 0.6rem', fontSize: '0.78rem', borderColor: 'rgba(184, 58, 45, 0.35)', color: 'var(--danger)' }}
+                              title="Delete permanently"
+                            >
                               🗑️
                             </button>
                           </div>
@@ -518,8 +633,8 @@ export default function ComplaintsPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>

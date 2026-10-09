@@ -87,24 +87,24 @@ export default function LoginPage() {
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div
             style={{
-              width: '52px',
-              height: '52px',
-              margin: '0 auto 1rem',
-              borderRadius: '14px',
-              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              width: '56px',
+              height: '56px',
+              margin: '0 auto 1.25rem',
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, var(--palette-1) 0%, #875f45 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '1.6rem',
-              boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)',
+              fontSize: '1.75rem',
+              boxShadow: '0 8px 20px rgba(174, 140, 116, 0.4)',
             }}
           >
             🏢
           </div>
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em', marginBottom: '0.35rem' }}>
+          <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.025em', marginBottom: '0.4rem' }}>
             {isRegister ? 'Create Account' : 'Welcome Back'}
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', margin: 0 }}>
             {isRegister
               ? 'Join Smart Living & Safety Platform'
               : 'Sign in to access your dashboard & living hub'}

@@ -2,42 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../Module1-Authentication/AuthContext';
 import { rosterService } from './rosterService';
 
-const SHIFT_COLORS = {
-  MORNING:      { bg: '#fef9c3', border: '#fbbf24', text: '#92400e' },
-  AFTERNOON:    { bg: '#dbeafe', border: '#3b82f6', text: '#1e3a8a' },
-  NIGHT:        { bg: '#ede9fe', border: '#7c3aed', text: '#3b0764' },
-  GUARD_PATROL: { bg: '#d1fae5', border: '#059669', text: '#064e3b' },
-};
-
-const STATUS_BADGE = {
-  SCHEDULED:  { bg: '#e0f2fe', color: '#0369a1', label: '🕐 Scheduled' },
-  ACTIVE:     { bg: '#dcfce7', color: '#15803d', label: '🟢 Active' },
-  COMPLETED:  { bg: '#f0fdf4', color: '#166534', label: '✅ Completed' },
-  ABSENT:     { bg: '#fee2e2', color: '#991b1b', label: '❌ Absent' },
-  CANCELLED:  { bg: '#f3f4f6', color: '#374151', label: '🚫 Cancelled' },
-};
-
-function SummaryCard({ label, value, icon, color = '#3b82f6' }) {
-  return (
-    <div style={{
-      background: '#fff',
-      borderRadius: 12,
-      padding: '1.25rem',
-      boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-      borderLeft: `4px solid ${color}`,
-      display: 'flex',
-      alignItems: 'center',
-      gap: '1rem',
-    }}>
-      <span style={{ fontSize: '2rem' }}>{icon}</span>
-      <div>
-        <div style={{ fontSize: '1.75rem', fontWeight: 700, color }}>{value}</div>
-        <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>{label}</div>
-      </div>
-    </div>
-  );
-}
-
 export default function StaffRosterPage() {
   const { user } = useAuth();
   const [shifts, setShifts] = useState([]);
@@ -70,7 +34,7 @@ export default function StaffRosterPage() {
         rosterService.getAllShifts().catch(() => []),
         rosterService.getSummary().catch(() => null),
       ]);
-      setShifts(shiftsData);
+      setShifts(shiftsData || []);
       setSummary(summaryData);
     } catch {
       setError('Failed to load roster data.');
@@ -91,12 +55,18 @@ export default function StaffRosterPage() {
 
   if (!user) {
     return (
-      <div className="container" style={{ padding: '3rem 1rem', textAlign: 'center' }}>
-        <div style={{ maxWidth: 400, margin: '0 auto', background: '#fff', borderRadius: 16, padding: '2.5rem', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔐</div>
-          <h2 style={{ fontSize: '1.4rem', marginBottom: '0.5rem' }}>Authentication Required</h2>
-          <p style={{ color: '#6b7280', marginBottom: '1.5rem' }}>Please sign in to access Staff Roster</p>
-          <a href="/login" className="btn btn-primary">Sign In to Access</a>
+      <div className="card" style={{ maxWidth: 580, margin: '3.5rem auto', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>👮</div>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+          Staff &amp; Guard Duty Roster
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
+          Please sign in to manage shifts, clock-in/out records, patrol checkpoints, and security logs.
+        </p>
+        <div>
+          <a href="/login" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+            Sign In to Access
+          </a>
         </div>
       </div>
     );
@@ -169,62 +139,163 @@ export default function StaffRosterPage() {
     }
   };
 
+  const getShiftBadge = (type) => {
+    switch (type) {
+      case 'MORNING':
+        return <span className="badge badge-warm">🌅 MORNING</span>;
+      case 'AFTERNOON':
+        return <span className="badge badge-sand">☀️ AFTERNOON</span>;
+      case 'NIGHT':
+        return <span className="badge badge-mocha">🌙 NIGHT</span>;
+      case 'GUARD_PATROL':
+        return <span className="badge badge-success">🛡️ PATROL</span>;
+      default:
+        return <span className="badge badge-neutral">{type}</span>;
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'SCHEDULED':
+        return <span className="badge badge-neutral">🕐 Scheduled</span>;
+      case 'ACTIVE':
+        return <span className="badge badge-success">🟢 Active</span>;
+      case 'COMPLETED':
+        return <span className="badge badge-cream">✅ Completed</span>;
+      case 'ABSENT':
+        return <span className="badge badge-danger">❌ Absent</span>;
+      case 'CANCELLED':
+        return <span className="badge badge-neutral">🚫 Cancelled</span>;
+      default:
+        return <span className="badge badge-neutral">{status}</span>;
+    }
+  };
+
   return (
-    <div className="container" style={{ padding: '2rem 1rem' }}>
+    <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="page-header">
         <div>
-          <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 700 }}>
-            👮 Module 11 — Staff & Guard Duty Roster
+          <h1 className="page-title">
+            👮 Staff &amp; Guard Duty Roster
           </h1>
-          <p style={{ margin: '0.25rem 0 0', color: '#6b7280' }}>
-            Manage shifts, clock-in/out, patrol checkpoints, and guard duty logs
+          <p className="page-subtitle">
+            Manage personnel shifts, clock-in/out records, patrol checkpoints, and security logs
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="page-header-actions">
           <button
             className="btn btn-outline"
             onClick={() => loadData()}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
             title="Refresh shifts and patrol checkpoints"
           >
-            🔄 Refresh
+            <span>🔄</span> Refresh
           </button>
-          <button className="btn btn-primary" onClick={() => setShowScheduleForm(s => !s)}>
-            {showScheduleForm ? '✕ Cancel' : '+ Schedule Shift'}
+          <button className="btn btn-primary" onClick={() => setShowScheduleForm((s) => !s)}>
+            {showScheduleForm ? '✕ Close Form' : '➕ Schedule Shift'}
           </button>
         </div>
       </div>
 
       {/* Alerts */}
-      {error && <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>⚠️ {error}</div>}
-      {success && <div style={{ background: '#d1fae5', border: '1px solid #6ee7b7', color: '#065f46', padding: '0.75rem 1rem', borderRadius: 8, marginBottom: '1rem' }}>{success}</div>}
+      {error && (
+        <div className="alert alert-danger" style={{ marginBottom: '1.25rem' }}>
+          <span>⚠️</span>
+          <span>{error}</span>
+        </div>
+      )}
+      {success && (
+        <div
+          className="alert"
+          style={{
+            background: 'var(--success-light)',
+            color: 'var(--success)',
+            border: '1px solid rgba(58,122,79,0.3)',
+            display: 'flex',
+            gap: '0.5rem',
+            alignItems: 'center',
+            borderRadius: 'var(--radius-md)',
+            padding: '0.75rem 1rem',
+            marginBottom: '1.25rem'
+          }}
+        >
+          <span>✅</span>
+          <span>{success}</span>
+        </div>
+      )}
 
-      {/* Summary Cards */}
+      {/* KPI Cards */}
       {summary && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <SummaryCard label="Shifts Today" value={summary.totalShiftsToday} icon="📋" color="#3b82f6" />
-          <SummaryCard label="Active Now" value={summary.activeShifts} icon="🟢" color="#059669" />
-          <SummaryCard label="Completed" value={summary.completedShifts} icon="✅" color="#16a34a" />
-          <SummaryCard label="Absent" value={summary.absentShifts} icon="❌" color="#dc2626" />
-          <SummaryCard label="Patrols Today" value={summary.patrolCheckpointsToday} icon="📍" color="#7c3aed" />
-          <SummaryCard label="Incidents" value={summary.incidentsLogged} icon="⚠️" color="#f59e0b" />
+        <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--palette-1)' }} />
+            <div className="kpi-label">Shifts Today</div>
+            <div className="kpi-value">{summary.totalShiftsToday}</div>
+            <div className="kpi-subtext">Total rostered</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--success)' }} />
+            <div className="kpi-label">Active On Duty</div>
+            <div className="kpi-value">{summary.activeShifts}</div>
+            <div className="kpi-subtext">Clocked in right now</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--palette-2)' }} />
+            <div className="kpi-label">Completed Shifts</div>
+            <div className="kpi-value">{summary.completedShifts}</div>
+            <div className="kpi-subtext">Finished today</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--danger)' }} />
+            <div className="kpi-label">Absent / Missed</div>
+            <div className="kpi-value">{summary.absentShifts}</div>
+            <div className="kpi-subtext">Unfulfilled shifts</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--palette-3)' }} />
+            <div className="kpi-label">Patrol Checkpoints</div>
+            <div className="kpi-value">{summary.patrolCheckpointsToday}</div>
+            <div className="kpi-subtext">Recorded today</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-card-stripe" style={{ background: 'var(--warning)' }} />
+            <div className="kpi-label">Incident Flags</div>
+            <div className="kpi-value">{summary.incidentsLogged}</div>
+            <div className="kpi-subtext">Requires review</div>
+          </div>
         </div>
       )}
 
       {/* Schedule Form */}
       {showScheduleForm && (
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '1.5rem', marginBottom: '2rem' }}>
-          <h3 style={{ margin: '0 0 1rem', fontSize: '1.1rem' }}>📋 Schedule New Shift</h3>
+        <div className="card" style={{ marginBottom: '1.5rem', padding: '1.5rem 1.75rem', border: '1px solid var(--border-focus)' }}>
+          <h3 style={{ margin: '0 0 1.25rem', fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)' }}>
+            📋 Schedule New Staff Shift
+          </h3>
           <form onSubmit={handleSchedule} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Staff User ID</label>
-              <input type="number" className="form-control" value={form.staffUserId}
-                onChange={e => setForm(f => ({ ...f, staffUserId: e.target.value }))} required min="1" />
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '0.35rem' }}>
+                Staff User ID
+              </label>
+              <input
+                type="number"
+                className="form-control"
+                value={form.staffUserId}
+                onChange={(e) => setForm((f) => ({ ...f, staffUserId: e.target.value }))}
+                required
+                min="1"
+              />
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Shift Type</label>
-              <select className="form-control" value={form.shiftType} onChange={e => setForm(f => ({ ...f, shiftType: e.target.value }))}>
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '0.35rem' }}>
+                Shift Type
+              </label>
+              <select
+                className="form-control"
+                value={form.shiftType}
+                onChange={(e) => setForm((f) => ({ ...f, shiftType: e.target.value }))}
+              >
                 <option value="MORNING">🌅 Morning</option>
                 <option value="AFTERNOON">☀️ Afternoon</option>
                 <option value="NIGHT">🌙 Night</option>
@@ -232,161 +303,248 @@ export default function StaffRosterPage() {
               </select>
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Date</label>
-              <input type="date" className="form-control" value={form.shiftDate}
-                onChange={e => setForm(f => ({ ...f, shiftDate: e.target.value }))} required />
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '0.35rem' }}>
+                Shift Date
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                value={form.shiftDate}
+                onChange={(e) => setForm((f) => ({ ...f, shiftDate: e.target.value }))}
+                required
+              />
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Location</label>
-              <input type="text" className="form-control" placeholder="e.g. Main Gate, Block A"
-                value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))} required />
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '0.35rem' }}>
+                Station / Location
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="e.g. Main Gate, Block A, Dining Hall"
+                value={form.location}
+                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                required
+              />
             </div>
             <div>
-              <label style={{ fontSize: '0.85rem', fontWeight: 600, display: 'block', marginBottom: 4 }}>Notes (optional)</label>
-              <input type="text" className="form-control" placeholder="Additional notes..."
-                value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+              <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', display: 'block', marginBottom: '0.35rem' }}>
+                Duty Notes (optional)
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Additional instructions..."
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+              />
             </div>
             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Schedule</button>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', height: 40 }}>
+                Confirm Schedule
+              </button>
             </div>
           </form>
         </div>
       )}
 
-      {/* Shifts Table */}
+      {/* Shifts List Cards */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '3rem', color: '#6b7280' }}>Loading shifts...</div>
+        <div className="card" style={{ padding: '3.5rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+          <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>⏳</div>
+          Loading shifts roster...
+        </div>
       ) : shifts.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '4rem', color: '#9ca3af', background: '#f9fafb', borderRadius: 12 }}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
-          <p>No shifts scheduled yet. Click <strong>+ Schedule Shift</strong> to begin.</p>
+        <div className="empty-state" style={{ padding: '4rem 1rem' }}>
+          <div className="empty-state-icon">📋</div>
+          <div className="empty-state-title">No Shifts Scheduled</div>
+          <div className="empty-state-desc">No duty shifts are scheduled yet. Click "+ Schedule Shift" above to assign personnel.</div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {shifts.map(shift => {
-            const colors = SHIFT_COLORS[shift.shiftType] || SHIFT_COLORS.MORNING;
-            const badge = STATUS_BADGE[shift.status] || STATUS_BADGE.SCHEDULED;
-            return (
-              <div key={shift.id} style={{
-                background: '#fff',
-                border: `1px solid ${colors.border}`,
-                borderLeft: `5px solid ${colors.border}`,
-                borderRadius: 10,
-                padding: '1rem 1.25rem',
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          {shifts.map((shift) => (
+            <div
+              key={shift.id}
+              className="card"
+              style={{
+                padding: '1.25rem 1.5rem',
+                borderLeft: shift.status === 'ACTIVE' ? '4px solid var(--success)' : '1px solid var(--border)',
+                background: shift.status === 'ACTIVE' ? 'var(--palette-4)' : 'var(--bg-surface)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 flexWrap: 'wrap',
-                gap: '0.75rem',
-              }}>
-                <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <div>
-                    <span style={{ background: colors.bg, color: colors.text, padding: '0.2rem 0.6rem', borderRadius: 6, fontSize: '0.8rem', fontWeight: 700 }}>
-                      {shift.shiftType.replace('_', ' ')}
-                    </span>
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{shift.staffName}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{shift.staffEmail}</div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>📅 {shift.shiftDate}</div>
-                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>📍 {shift.location}</div>
-                  </div>
-                  {(shift.clockInTime || shift.clockOutTime) && (
-                    <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                      {shift.clockInTime && <div>🕐 In: {new Date(shift.clockInTime).toLocaleTimeString()}</div>}
-                      {shift.clockOutTime && <div>🕔 Out: {new Date(shift.clockOutTime).toLocaleTimeString()}</div>}
-                    </div>
-                  )}
-                  <span style={{ background: badge.bg, color: badge.color, padding: '0.2rem 0.65rem', borderRadius: 6, fontSize: '0.8rem', fontWeight: 600 }}>
-                    {badge.label}
-                  </span>
+                gap: '1rem',
+                boxShadow: shift.status === 'ACTIVE' ? 'var(--shadow-warm-glow)' : 'var(--shadow-xs)'
+              }}
+            >
+              <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div>
+                  {getShiftBadge(shift.shiftType)}
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {shift.status === 'SCHEDULED' && (
-                    <>
-                      <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem', background: '#dcfce7', border: '1px solid #6ee7b7', color: '#065f46' }}
-                        onClick={() => handleClockIn(shift.id)}>
-                        🟢 Clock In
-                      </button>
-                      <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem', background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b' }}
-                        onClick={() => handleMarkAbsent(shift.id)}>
-                        ❌ Absent
-                      </button>
-                    </>
-                  )}
-                  {shift.status === 'ACTIVE' && (
-                    <>
-                      <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem', background: '#ede9fe', border: '1px solid #a78bfa', color: '#4c1d95' }}
-                        onClick={() => openPatrolModal(shift.id)}>
-                        📍 Log Patrol
-                      </button>
-                      <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem', background: '#dbeafe', border: '1px solid #93c5fd', color: '#1e40af' }}
-                        onClick={() => handleClockOut(shift.id)}>
-                        🔵 Clock Out
-                      </button>
-                    </>
-                  )}
-                  {(shift.status === 'COMPLETED' || shift.status === 'ABSENT') && (
-                    <button className="btn btn-outline" style={{ fontSize: '0.8rem', padding: '0.3rem 0.75rem' }}
-                      onClick={() => openPatrolModal(shift.id)}>
-                      📋 View Logs
-                    </button>
-                  )}
+                <div>
+                  <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.98rem' }}>{shift.staffName}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{shift.staffEmail}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-main)' }}>📅 {shift.shiftDate}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>📍 {shift.location}</div>
+                </div>
+                {(shift.clockInTime || shift.clockOutTime) && (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    {shift.clockInTime && <div>🕐 In: {new Date(shift.clockInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
+                    {shift.clockOutTime && <div>🕔 Out: {new Date(shift.clockOutTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
+                  </div>
+                )}
+                <div>
+                  {getStatusBadge(shift.status)}
                 </div>
               </div>
-            );
-          })}
+
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                {shift.status === 'SCHEDULED' && (
+                  <>
+                    <button
+                      className="btn btn-outline"
+                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem', color: 'var(--success)', borderColor: 'rgba(58,122,79,0.35)' }}
+                      onClick={() => handleClockIn(shift.id)}
+                    >
+                      🟢 Clock In
+                    </button>
+                    <button
+                      className="btn btn-outline"
+                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem', color: 'var(--danger)', borderColor: 'rgba(184,58,45,0.35)' }}
+                      onClick={() => handleMarkAbsent(shift.id)}
+                    >
+                      ❌ Mark Absent
+                    </button>
+                  </>
+                )}
+                {shift.status === 'ACTIVE' && (
+                  <>
+                    <button
+                      className="btn btn-outline"
+                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem', color: 'var(--palette-1)', borderColor: 'var(--palette-1)' }}
+                      onClick={() => openPatrolModal(shift.id)}
+                    >
+                      📍 Log Checkpoint
+                    </button>
+                    <button
+                      className="btn btn-primary"
+                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
+                      onClick={() => handleClockOut(shift.id)}
+                    >
+                      🔵 Clock Out
+                    </button>
+                  </>
+                )}
+                {(shift.status === 'COMPLETED' || shift.status === 'ABSENT') && (
+                  <button
+                    className="btn btn-outline"
+                    style={{ fontSize: '0.8rem', padding: '0.35rem 0.85rem' }}
+                    onClick={() => openPatrolModal(shift.id)}
+                  >
+                    📋 View Logs
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Patrol Log Modal */}
       {patrolModalShiftId && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: '2rem', width: '100%', maxWidth: 560, maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-              <h3 style={{ margin: 0 }}>📍 Patrol Logs — Shift #{patrolModalShiftId}</h3>
-              <button onClick={() => setPatrolModalShiftId(null)} style={{ background: 'none', border: 'none', fontSize: '1.25rem', cursor: 'pointer', color: '#6b7280' }}>✕</button>
+        <div className="modal-overlay" onClick={() => setPatrolModalShiftId(null)}>
+          <div className="modal-card" style={{ maxWidth: 560 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">📍 Patrol Logs — Shift #{patrolModalShiftId}</h3>
+              <button className="modal-close-btn" onClick={() => setPatrolModalShiftId(null)}>✕</button>
             </div>
 
             {/* Log Patrol Form (only for ACTIVE shifts) */}
-            {shifts.find(s => s.id === patrolModalShiftId)?.status === 'ACTIVE' && (
-              <form onSubmit={handleLogPatrol} style={{ background: '#f8fafc', borderRadius: 10, padding: '1rem', marginBottom: '1.5rem' }}>
-                <h4 style={{ margin: '0 0 0.75rem', fontSize: '0.95rem' }}>+ Log New Checkpoint</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <input type="text" className="form-control" placeholder="Checkpoint name (e.g. Gate A, Parking)" required
-                    value={patrolForm.checkpointName} onChange={e => setPatrolForm(f => ({ ...f, checkpointName: e.target.value }))} />
-                  <input type="text" className="form-control" placeholder="Observation remarks"
-                    value={patrolForm.observationRemarks} onChange={e => setPatrolForm(f => ({ ...f, observationRemarks: e.target.value }))} />
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={patrolForm.incidentFlag} onChange={e => setPatrolForm(f => ({ ...f, incidentFlag: e.target.checked }))} />
-                    ⚠️ Flag as Incident
+            {shifts.find((s) => s.id === patrolModalShiftId)?.status === 'ACTIVE' && (
+              <form
+                onSubmit={handleLogPatrol}
+                style={{
+                  background: 'var(--bg-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '1.25rem',
+                  marginBottom: '1.5rem',
+                  marginTop: '1rem',
+                  border: '1px solid var(--border)'
+                }}
+              >
+                <h4 style={{ margin: '0 0 0.85rem', fontSize: '0.96rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                  + Record Patrol Checkpoint
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Checkpoint name (e.g. Gate A, West Wing, Parking)"
+                    required
+                    value={patrolForm.checkpointName}
+                    onChange={(e) => setPatrolForm((f) => ({ ...f, checkpointName: e.target.value }))}
+                  />
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Observation remarks"
+                    value={patrolForm.observationRemarks}
+                    onChange={(e) => setPatrolForm((f) => ({ ...f, observationRemarks: e.target.value }))}
+                  />
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.88rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                    <input
+                      type="checkbox"
+                      checked={patrolForm.incidentFlag}
+                      onChange={(e) => setPatrolForm((f) => ({ ...f, incidentFlag: e.target.checked }))}
+                      style={{ accentColor: 'var(--danger)', width: 16, height: 16 }}
+                    />
+                    ⚠️ Flag as Security Incident
                   </label>
-                  <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Log Checkpoint</button>
+                  <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', marginTop: '0.25rem' }}>
+                    Record Checkpoint
+                  </button>
                 </div>
               </form>
             )}
 
             {/* Patrol log list */}
             {patrolLogs.length === 0 ? (
-              <p style={{ color: '#9ca3af', textAlign: 'center' }}>No patrol logs yet.</p>
+              <div className="empty-state" style={{ padding: '2rem 1rem' }}>
+                <div className="empty-state-icon">📍</div>
+                <div className="empty-state-title">No Patrol Logs Recorded</div>
+                <div className="empty-state-desc">No checkpoint verifications have been logged for this shift yet.</div>
+              </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {patrolLogs.map(log => (
-                  <div key={log.id} style={{ background: log.incidentFlag ? '#fef2f2' : '#f8fafc', border: `1px solid ${log.incidentFlag ? '#fca5a5' : '#e2e8f0'}`, borderRadius: 8, padding: '0.75rem 1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>📍 {log.checkpointName}</span>
-                      {log.incidentFlag && <span style={{ background: '#fee2e2', color: '#dc2626', padding: '0.15rem 0.5rem', borderRadius: 4, fontSize: '0.75rem', fontWeight: 700 }}>⚠️ INCIDENT</span>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: '340px', overflowY: 'auto' }}>
+                {patrolLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    style={{
+                      background: log.incidentFlag ? 'var(--danger-light)' : 'var(--bg-subtle)',
+                      border: `1px solid ${log.incidentFlag ? 'rgba(184,58,45,0.35)' : 'var(--border)'}`,
+                      borderRadius: 'var(--radius-md)',
+                      padding: '0.85rem 1rem'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                      <span style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-main)' }}>📍 {log.checkpointName}</span>
+                      {log.incidentFlag && <span className="badge badge-danger">⚠️ INCIDENT</span>}
                     </div>
-                    {log.observationRemarks && <div style={{ fontSize: '0.85rem', color: '#374151' }}>{log.observationRemarks}</div>}
-                    <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem' }}>
+                    {log.observationRemarks && <div style={{ fontSize: '0.86rem', color: 'var(--text-main)', opacity: 0.9 }}>{log.observationRemarks}</div>}
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>
                       {new Date(log.verifiedAt).toLocaleString()}
                     </div>
                   </div>
                 ))}
               </div>
             )}
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1.25rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
+              <button onClick={() => setPatrolModalShiftId(null)} className="btn btn-outline">Close</button>
+            </div>
           </div>
         </div>
       )}

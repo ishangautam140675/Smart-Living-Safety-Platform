@@ -117,77 +117,84 @@ export default function NoticesPage() {
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'URGENT':
-        return <span className="badge badge-danger" style={{ backgroundColor: '#dc2626', color: '#fff' }}>URGENT</span>;
+        return <span className="badge badge-danger">URGENT</span>;
       case 'HIGH':
-        return <span className="badge badge-warning" style={{ backgroundColor: '#ea580c', color: '#fff' }}>HIGH</span>;
+        return <span className="badge badge-warning">HIGH</span>;
       case 'NORMAL':
-        return <span className="badge badge-primary" style={{ backgroundColor: '#2563eb', color: '#fff' }}>NORMAL</span>;
+        return <span className="badge badge-mocha">NORMAL</span>;
       case 'LOW':
-        return <span className="badge badge-neutral" style={{ backgroundColor: '#64748b', color: '#fff' }}>LOW</span>;
+        return <span className="badge badge-neutral">LOW</span>;
       default:
-        return <span className="badge">{priority}</span>;
+        return <span className="badge badge-neutral">{priority}</span>;
     }
   };
 
   const getCategoryBadge = (category) => {
     switch (category) {
       case 'MAINTENANCE':
-        return <span style={{ color: '#d97706', fontWeight: 600 }}>🛠️ Maintenance</span>;
+        return <span className="badge badge-sand">🛠️ Maintenance</span>;
       case 'SECURITY':
-        return <span style={{ color: '#dc2626', fontWeight: 600 }}>🛡️ Security</span>;
+        return <span className="badge badge-danger">🛡️ Security</span>;
       case 'EVENT':
-        return <span style={{ color: '#7c3aed', fontWeight: 600 }}>🎉 Event</span>;
+        return <span className="badge badge-cream">🎉 Event</span>;
       case 'RULES':
-        return <span style={{ color: '#0284c7', fontWeight: 600 }}>📋 Guidelines</span>;
+        return <span className="badge badge-warm">📋 Guidelines</span>;
       case 'EMERGENCY':
-        return <span style={{ color: '#b91c1c', fontWeight: 700 }}>🚨 Emergency</span>;
+        return <span className="badge badge-danger">🚨 Emergency</span>;
       default:
-        return <span style={{ color: '#475569', fontWeight: 600 }}>📢 General</span>;
+        return <span className="badge badge-neutral">📢 General</span>;
     }
   };
 
   if (!user) {
     return (
-      <div style={{ padding: '60px 24px', maxWidth: 600, margin: '40px auto', textAlign: 'center', background: '#fff', borderRadius: 16, border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}>
-        <div style={{ fontSize: 48, marginBottom: 16 }}>📢</div>
-        <h2 style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', marginBottom: 8 }}>Community Notice Board</h2>
-        <p style={{ color: '#64748b', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>
+      <div className="card" style={{ maxWidth: 580, margin: '3.5rem auto', textAlign: 'center', padding: '3rem 2rem' }}>
+        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📢</div>
+        <h2 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+          Community Notice Board
+        </h2>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
           Please sign in to read official notices, hostel circulars, event announcements, and maintenance alerts.
         </p>
-        <a href="/login" style={{ display: 'inline-block', padding: '10px 24px', borderRadius: 8, textDecoration: 'none', fontWeight: 600, backgroundColor: '#0d6efd', color: '#fff' }}>
-          Sign In to Access
-        </a>
+        <div>
+          <a href="/login" className="btn btn-primary" style={{ textDecoration: 'none' }}>
+            Sign In to Access
+          </a>
+        </div>
       </div>
     );
   }
 
+  const pinnedCount = notices.filter(n => n.pinned).length;
+  const urgentCount = notices.filter(n => n.priority === 'URGENT' || n.priority === 'HIGH').length;
+
   return (
-    <div className="container" style={{ padding: '2rem 1rem' }}>
+    <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: '1.8rem', fontWeight: 800, margin: 0, color: 'var(--text-main)' }}>
+          <h1 className="page-title">
             📢 Community Notice Board &amp; Broadcasts
           </h1>
-          <p style={{ margin: '0.35rem 0 0', color: 'var(--text-muted)' }}>
+          <p className="page-subtitle">
             Official hostel announcements, maintenance alerts, security notices, and campus updates
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <div className="page-header-actions">
           <button
             className="btn btn-outline"
             onClick={() => loadNotices()}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
             title="Refresh notice board"
           >
-            🔄 Refresh
+            <span>🔄</span> Refresh
           </button>
           {isAdminOrStaff && (
             <button
               className="btn btn-primary"
               onClick={() => setShowModal(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
             >
               <span>➕</span> Post Notice
             </button>
@@ -195,65 +202,120 @@ export default function NoticesPage() {
         </div>
       </div>
 
+      {/* KPI Stats */}
+      <div className="kpi-grid" style={{ marginBottom: '1.5rem' }}>
+        <div className="kpi-card">
+          <div className="kpi-card-stripe" style={{ background: 'var(--palette-1)' }} />
+          <div className="kpi-label">Total Notices</div>
+          <div className="kpi-value">{notices.length}</div>
+          <div className="kpi-subtext">Active circulars on board</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-card-stripe" style={{ background: 'var(--palette-2)' }} />
+          <div className="kpi-label">Pinned Bulletins</div>
+          <div className="kpi-value">{pinnedCount}</div>
+          <div className="kpi-subtext">Featured at top</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-card-stripe" style={{ background: 'var(--warning)' }} />
+          <div className="kpi-label">Urgent / High Priority</div>
+          <div className="kpi-value">{urgentCount}</div>
+          <div className="kpi-subtext">Action required</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-card-stripe" style={{ background: 'var(--success)' }} />
+          <div className="kpi-label">Broadcast Audience</div>
+          <div className="kpi-value">Active</div>
+          <div className="kpi-subtext">Hostel Residents &amp; Staff</div>
+        </div>
+      </div>
+
       {/* Alerts */}
       {error && (
-        <div className="alert alert-danger" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#fee2e2', color: '#991b1b' }}>
-          ⚠️ {error}
+        <div className="alert alert-danger" style={{ marginBottom: '1.25rem' }}>
+          <span>⚠️</span>
+          <span>{error}</span>
         </div>
       )}
       {successMsg && (
-        <div className="alert alert-success" style={{ marginBottom: '1rem', padding: '0.75rem 1rem', borderRadius: '8px', backgroundColor: '#dcfce7', color: '#166534' }}>
-          ✅ {successMsg}
+        <div
+          className="alert"
+          style={{
+            background: 'var(--success-light)',
+            color: 'var(--success)',
+            border: '1px solid rgba(58,122,79,0.3)',
+            display: 'flex',
+            gap: '0.5rem',
+            alignItems: 'center',
+            borderRadius: 'var(--radius-md)',
+            padding: '0.75rem 1rem',
+            marginBottom: '1.25rem'
+          }}
+        >
+          <span>✅</span>
+          <span>{successMsg}</span>
         </div>
       )}
 
       {/* Filter Toolbar */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        <input
-          type="text"
-          placeholder="Search notices by keywords..."
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          style={{ flex: 1, minWidth: '220px', padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-        />
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}
-        >
-          <option value="">All Categories</option>
-          <option value="GENERAL">General</option>
-          <option value="MAINTENANCE">Maintenance</option>
-          <option value="SECURITY">Security</option>
-          <option value="EVENT">Event</option>
-          <option value="RULES">Rules &amp; Guidelines</option>
-          <option value="EMERGENCY">Emergency</option>
-        </select>
+      <div className="toolbar-card" style={{ marginBottom: '1.5rem' }}>
+        <div className="search-input-wrapper" style={{ flex: 1, minWidth: 260 }}>
+          <span className="search-icon-inside">🔍</span>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search notices by headline or content..."
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+          />
+        </div>
+        <div style={{ minWidth: 200 }}>
+          <select
+            className="form-control"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="">All Categories</option>
+            <option value="GENERAL">📢 General</option>
+            <option value="MAINTENANCE">🛠️ Maintenance</option>
+            <option value="SECURITY">🛡️ Security</option>
+            <option value="EVENT">🎉 Event</option>
+            <option value="RULES">📋 Guidelines &amp; Rules</option>
+            <option value="EMERGENCY">🚨 Emergency</option>
+          </select>
+        </div>
       </div>
 
       {/* Notice Board Feed Cards */}
       {loading ? (
-        <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>Loading notice board...</div>
+        <div className="card" style={{ padding: '3.5rem 1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+          <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>⏳</div>
+          Loading notice board...
+        </div>
       ) : notices.length === 0 ? (
-        <div className="card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-          No announcements found matching your criteria.
+        <div className="card empty-state" style={{ padding: '3.5rem 1rem' }}>
+          <div className="empty-state-icon">📢</div>
+          <div className="empty-state-title">No announcements found</div>
+          <div className="empty-state-desc">There are no notices matching your current search or category filter.</div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {notices.map((n) => (
             <div
               key={n.id}
               className="card"
               style={{
-                padding: '1.5rem',
-                borderLeft: n.pinned ? '5px solid #2563eb' : '1px solid #e2e8f0',
-                background: n.pinned ? '#f8faff' : '#ffffff'
+                padding: '1.5rem 1.75rem',
+                borderLeft: n.pinned ? '4px solid var(--palette-1)' : '1px solid var(--border)',
+                background: n.pinned ? 'var(--palette-4)' : 'var(--bg-surface)',
+                boxShadow: n.pinned ? 'var(--shadow-warm-glow)' : 'var(--shadow-sm)',
+                transition: 'transform var(--transition-fast), box-shadow var(--transition-fast)'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.85rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
                   {n.pinned && (
-                    <span style={{ backgroundColor: '#dbeafe', color: '#1d4ed8', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 800 }}>
+                    <span className="badge badge-mocha" style={{ fontWeight: 800 }}>
                       📌 PINNED
                     </span>
                   )}
@@ -261,37 +323,44 @@ export default function NoticesPage() {
                   {getPriorityBadge(n.priority)}
                 </div>
 
-                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                  Posted by <strong>{n.publishedByName}</strong> • {new Date(n.createdAt).toLocaleDateString()}
+                <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  Posted by <strong style={{ color: 'var(--text-main)' }}>{n.publishedByName}</strong> • {new Date(n.createdAt).toLocaleDateString()}
                 </div>
               </div>
 
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.5rem', color: '#0f172a' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 0.6rem', color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
                 {n.title}
               </h2>
 
-              <p style={{ margin: '0 0 1rem', color: '#334155', whiteSpace: 'pre-wrap', lineHeight: 1.6, fontSize: '0.95rem' }}>
+              <p style={{ margin: '0 0 1.25rem', color: 'var(--text-main)', whiteSpace: 'pre-wrap', lineHeight: 1.65, fontSize: '0.94rem', opacity: 0.9 }}>
                 {n.content}
               </p>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem', fontSize: '0.8rem', color: '#64748b' }}>
-                <div>Audience: <strong>{n.targetAudience}</strong> {n.expiresAt ? `• Valid until: ${n.expiresAt}` : ''}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-subtle)', paddingTop: '0.85rem', fontSize: '0.82rem', color: 'var(--text-muted)', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div>
+                  Audience: <strong style={{ color: 'var(--text-main)' }}>{n.targetAudience}</strong> {n.expiresAt ? `• Valid until: ${n.expiresAt}` : ''}
+                </div>
 
                 {isAdmin && (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button
                       className="btn btn-outline"
-                      style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem' }}
+                      style={{ padding: '0.3rem 0.75rem', fontSize: '0.78rem' }}
                       onClick={() => handleTogglePin(n.id)}
                     >
-                      {n.pinned ? 'Unpin' : 'Pin to Top'}
+                      {n.pinned ? 'Unpin' : '📌 Pin to Top'}
                     </button>
                     <button
                       className="btn btn-outline"
-                      style={{ padding: '0.25rem 0.6rem', fontSize: '0.75rem', color: '#ef4444', borderColor: '#ef4444' }}
+                      style={{
+                        padding: '0.3rem 0.75rem',
+                        fontSize: '0.78rem',
+                        color: 'var(--danger)',
+                        borderColor: 'rgba(184,58,45,0.35)'
+                      }}
                       onClick={() => handleDelete(n.id, n.title)}
                     >
-                      Delete
+                      🗑 Delete
                     </button>
                   </div>
                 )}
@@ -303,32 +372,37 @@ export default function NoticesPage() {
 
       {/* Modal: Post Notice */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}>
-          <div className="card" style={{ width: '100%', maxWidth: '520px', padding: '1.75rem', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 1rem' }}>
-              📢 Publish Community Notice
-            </h2>
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-card" style={{ maxWidth: 540 }} onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">📢 Publish Community Notice</h2>
+              <button className="modal-close-btn" onClick={() => setShowModal(false)}>✕</button>
+            </div>
 
-            <form onSubmit={handlePublish} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            <form onSubmit={handlePublish} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Notice Headline *</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                  Notice Headline *
+                </label>
                 <input
                   type="text"
                   required
+                  className="form-control"
                   placeholder="e.g. WiFi Upgrade Maintenance on Friday"
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Category *</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Category *
+                  </label>
                   <select
+                    className="form-control"
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   >
                     <option value="GENERAL">📢 General</option>
                     <option value="MAINTENANCE">🛠️ Maintenance</option>
@@ -340,11 +414,13 @@ export default function NoticesPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Priority</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Priority
+                  </label>
                   <select
+                    className="form-control"
                     value={form.priority}
                     onChange={(e) => setForm({ ...form, priority: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   >
                     <option value="NORMAL">Normal</option>
                     <option value="HIGH">High Priority</option>
@@ -355,24 +431,29 @@ export default function NoticesPage() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Notice Body Content *</label>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                  Notice Body Content *
+                </label>
                 <textarea
                   rows="4"
                   required
+                  className="form-control"
                   placeholder="Detailed announcement, timings, guidelines, and contact persons..."
                   value={form.content}
                   onChange={(e) => setForm({ ...form, content: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'vertical' }}
+                  style={{ resize: 'vertical' }}
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Target Audience</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Target Audience
+                  </label>
                   <select
+                    className="form-control"
                     value={form.targetAudience}
                     onChange={(e) => setForm({ ...form, targetAudience: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   >
                     <option value="ALL">All Residents &amp; Staff</option>
                     <option value="RESIDENTS">Residents Only</option>
@@ -381,29 +462,32 @@ export default function NoticesPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.25rem' }}>Expires On (optional)</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                    Expires On (optional)
+                  </label>
                   <input
                     type="date"
+                    className="form-control"
                     value={form.expiresAt}
                     onChange={(e) => setForm({ ...form, expiresAt: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.25rem' }}>
                 <input
                   type="checkbox"
                   id="pinnedCheck"
                   checked={form.pinned}
                   onChange={(e) => setForm({ ...form, pinned: e.target.checked })}
+                  style={{ accentColor: 'var(--palette-1)', cursor: 'pointer', width: 16, height: 16 }}
                 />
-                <label htmlFor="pinnedCheck" style={{ fontSize: '0.85rem', fontWeight: 600 }}>
+                <label htmlFor="pinnedCheck" style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-main)', cursor: 'pointer' }}>
                   📌 Pin this notice to top of community board
                 </label>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1rem' }}>
                 <button type="button" className="btn btn-outline" onClick={() => setShowModal(false)}>
                   Cancel
                 </button>
