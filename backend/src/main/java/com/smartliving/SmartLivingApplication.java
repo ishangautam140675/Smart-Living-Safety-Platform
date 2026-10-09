@@ -3,6 +3,10 @@ package com.smartliving;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.Properties;
+
 @SpringBootApplication
 public class SmartLivingApplication {
 
@@ -13,89 +17,83 @@ public class SmartLivingApplication {
         }
 
         if (profile.contains("mysql")) {
-            sanitizeDatabaseEnvironment();
+            boolean mysqlOk = setupAndTestMySQL();
+            if (!mysqlOk) {
+                System.out.println("[SmartLiving] MySQL unavailable — switching to H2 (site stays live!)");
+                System.setProperty("spring.profiles.active", "h2");
+                // Clear any broken datasource props so H2 config takes over cleanly
+                System.clearProperty("spring.datasource.url");
+                System.clearProperty("spring.datasource.username");
+                System.clearProperty("spring.datasource.password");
+            }
         }
 
         SpringApplication.run(SmartLivingApplication.class, args);
     }
 
-    private static void sanitizeDatabaseEnvironment() {
-        String dbUrl = System.getenv("DB_URL");
-        if (dbUrl == null || dbUrl.trim().isEmpty()) {
-            dbUrl = System.getProperty("DB_URL");
-        }
+    private static boolean setupAndTestMySQL() {
+        try {
+            // Get and sanitize URL
+            String dbUrl = System.getenv("DB_URL");
+            if (dbUrl == null || dbUrl.trim().isEmpty()) return false;
 
-        if (dbUrl != null && !dbUrl.trim().isEmpty()) {
             String s = dbUrl.trim();
+            if (s.startsWith("\"") && s.endsWith("\"")) s = s.substring(1, s.length() - 1).trim();
+            if (s.startsWith("'") && s.endsWith("'")) s = s.substring(1, s.length() - 1).trim();
+            if (s.startsWith("mysql://")) s = "jdbc:" + s;
+            if (!s.startsWith("jdbc:mysql://")) s = "jdbc:mysql://" + s;
 
-            if (s.startsWith("\"") && s.endsWith("\"") && s.length() > 1) {
-                s = s.substring(1, s.length() - 1).trim();
-            }
-            if (s.startsWith("'") && s.endsWith("'") && s.length() > 1) {
-                s = s.substring(1, s.length() - 1).trim();
-            }
-
-            if (!s.startsWith("jdbc:mysql://") && !s.startsWith("mysql://")) {
-                s = "jdbc:mysql://" + s;
-            }
-            if (s.startsWith("mysql://")) {
-                s = "jdbc:" + s;
-            }
-
-            int protocolEnd = s.indexOf("://") + 3;
-            if (protocolEnd > 2 && protocolEnd < s.length()) {
-                String proto = s.substring(0, protocolEnd);
-                String rest = s.substring(protocolEnd);
-                rest = rest.replaceAll("/+", "/");
+            // Fix double slashes and question marks
+            int pe = s.indexOf("://") + 3;
+            if (pe > 2) {
+                String proto = s.substring(0, pe);
+                String rest = s.substring(pe).replaceAll("/+", "/");
                 s = proto + rest;
             }
+            s = s.replaceAll("\\?+", "?").replaceAll("&+", "&");
 
-            s = s.replaceAll("\\?+", "?");
-            s = s.replaceAll("&+", "&");
-
+            // Strip embedded credentials from URL
             if (s.contains("@")) {
-                int atIdx = s.indexOf("@");
-                int schemeEnd = s.indexOf("://") + 3;
-                if (schemeEnd < atIdx) {
-                    String userPass = s.substring(schemeEnd, atIdx);
-                    String hostAndRest = s.substring(atIdx + 1);
-                    if (userPass.contains(":")) {
-                        String[] parts = userPass.split(":", 2);
-                        if (System.getenv("DB_USERNAME") == null) {
-                            System.setProperty("spring.datasource.username", parts[0]);
-                        }
-                        if (System.getenv("DB_PASSWORD") == null) {
-                            System.setProperty("spring.datasource.password", parts[1]);
-                        }
-                    } else {
-                        if (System.getenv("DB_USERNAME") == null) {
-                            System.setProperty("spring.datasource.username", userPass);
-                        }
-                    }
-                    s = s.substring(0, schemeEnd) + hostAndRest;
+                int at = s.indexOf("@");
+                int se = s.indexOf("://") + 3;
+                if (se < at) s = s.substring(0, se) + s.substring(at + 1);
+            }
+
+            // Ensure required params
+            if (!s.contains("serverTimezone")) s += (s.contains("?") ? "&" : "?") + "serverTimezone=UTC";
+            if (!s.contains("sslMode")) s += "&sslMode=VERIFY_IDENTITY";
+
+            // Get credentials
+            String user = System.getenv("DB_USERNAME");
+            String pass = System.getenv("DB_PASSWORD");
+            if (user == null || user.trim().isEmpty()) return false;
+
+            user = user.trim();
+            pass = pass != null ? pass.trim() : "";
+
+            System.out.println("[SmartLiving] Testing MySQL connection. User: " + user);
+
+            // Test actual connection with 8 second timeout
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Properties props = new Properties();
+            props.setProperty("user", user);
+            props.setProperty("password", pass);
+            props.setProperty("connectTimeout", "8000");
+            props.setProperty("socketTimeout", "8000");
+
+            try (Connection conn = DriverManager.getConnection(s, props)) {
+                if (conn.isValid(5)) {
+                    // Connection works — apply settings
+                    System.setProperty("spring.datasource.url", s);
+                    System.setProperty("spring.datasource.username", user);
+                    System.setProperty("spring.datasource.password", pass);
+                    System.out.println("[SmartLiving] MySQL connected successfully!");
+                    return true;
                 }
             }
-
-            if (!s.contains("serverTimezone")) {
-                s += (s.contains("?") ? "&" : "?") + "serverTimezone=UTC";
-            }
-            if (!s.contains("sslMode")) {
-                s += (s.contains("?") ? "&" : "?") + "sslMode=VERIFY_IDENTITY";
-            }
-
-            System.setProperty("spring.datasource.url", s);
-
-            // Always explicitly set username and password from env vars
-            String dbUser = System.getenv("DB_USERNAME");
-            if (dbUser != null && !dbUser.trim().isEmpty()) {
-                System.setProperty("spring.datasource.username", dbUser.trim());
-            }
-            String dbPass = System.getenv("DB_PASSWORD");
-            if (dbPass != null) {
-                System.setProperty("spring.datasource.password", dbPass.trim());
-            }
-
-            System.out.println("[SmartLiving] MySQL configured. User: " + (dbUser != null ? dbUser.trim() : "root(default)"));
+        } catch (Exception e) {
+            System.out.println("[SmartLiving] MySQL test failed: " + e.getMessage());
         }
+        return false;
     }
 }
