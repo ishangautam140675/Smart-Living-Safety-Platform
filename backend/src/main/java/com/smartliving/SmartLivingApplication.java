@@ -83,8 +83,19 @@ public class SmartLivingApplication {
                 s += (s.contains("?") ? "&" : "?") + "sslMode=VERIFY_IDENTITY";
             }
 
-            System.out.println("[SmartLiving] Sanitized MySQL JDBC URL configured successfully.");
             System.setProperty("spring.datasource.url", s);
+
+            // Always explicitly set username and password from env vars
+            String dbUser = System.getenv("DB_USERNAME");
+            if (dbUser != null && !dbUser.trim().isEmpty()) {
+                System.setProperty("spring.datasource.username", dbUser.trim());
+            }
+            String dbPass = System.getenv("DB_PASSWORD");
+            if (dbPass != null) {
+                System.setProperty("spring.datasource.password", dbPass.trim());
+            }
+
+            System.out.println("[SmartLiving] MySQL configured. User: " + (dbUser != null ? dbUser.trim() : "root(default)"));
         }
     }
 }
