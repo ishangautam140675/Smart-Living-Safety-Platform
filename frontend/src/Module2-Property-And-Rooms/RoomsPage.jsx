@@ -454,6 +454,11 @@ export default function RoomsPage() {
     return matchesCat && matchesSearch;
   });
 
+  // Count of pending booking requests for notification badge
+  const pendingRequestsCount = Array.isArray(bookingRequests)
+    ? bookingRequests.filter((r) => r.status === 'PENDING').length
+    : 0;
+
   return (
     <div>
       {/* ── Top Header ─────────────────────────────────────────────────── */}
@@ -514,9 +519,43 @@ export default function RoomsPage() {
         {(isResident || isAdmin || isStaffOrAdmin) && (
           <button
             onClick={() => setActiveTab('requests')}
-            style={{ padding: '0.75rem 1.5rem', background: 'none', border: 'none', borderBottom: activeTab === 'requests' ? '3px solid var(--primary)' : '3px solid transparent', color: activeTab === 'requests' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: activeTab === 'requests' ? 800 : 600, fontSize: '1rem', cursor: 'pointer', transition: 'all 0.2s' }}
+            style={{
+              padding: '0.75rem 1.5rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === 'requests' ? '3px solid var(--primary)' : '3px solid transparent',
+              color: activeTab === 'requests' ? 'var(--primary)' : 'var(--text-muted)',
+              fontWeight: activeTab === 'requests' ? 800 : 600,
+              fontSize: '1rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'inline-flex',
+              alignItems: 'center',
+            }}
           >
-            📋 Booking Requests
+            <span>📋 Booking Requests</span>
+            {pendingRequestsCount > 0 && (
+              <span
+                style={{
+                  background: '#ef4444',
+                  color: '#fff',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  minWidth: '20px',
+                  height: '20px',
+                  borderRadius: '999px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 5px',
+                  marginLeft: '8px',
+                  lineHeight: 1,
+                  boxShadow: '0 2px 4px rgba(239,68,68,0.3)',
+                }}
+              >
+                {pendingRequestsCount > 99 ? '99+' : pendingRequestsCount}
+              </span>
+            )}
           </button>
         )}
       </div>
